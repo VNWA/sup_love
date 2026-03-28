@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,10 +39,25 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'cskhLink' => (string) config('app.cskh_link', ''),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $this->serializeUser($request->user()),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function serializeUser(?User $user): ?array
+    {
+        if ($user === null) {
+            return null;
+        }
+
+        return array_merge($user->toArray(), [
+            'is_admin' => $user->hasRole('admin'),
+        ]);
     }
 }

@@ -2,6 +2,10 @@ export type User = {
     id: number;
     name: string;
     email: string;
+    username?: string | null;
+    /** Điểm dùng cho vòng quay / tích lũy */
+    point?: number;
+    is_admin?: boolean;
     avatar?: string;
     email_verified_at: string | null;
     created_at: string;

@@ -123,4 +123,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | CSKH (chăm sóc khách hàng)
+    |--------------------------------------------------------------------------
+    |
+    | URL hoặc số gọi khi người dùng bấm CSKH (Zalo, Messenger, tel:, https...).
+    |
+    */
+
+    'cskh_link' => env('CSKH_LINK', ''),
+
 ];
