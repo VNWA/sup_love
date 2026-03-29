@@ -12,6 +12,7 @@ type ChoiceRow = {
     id: number;
     name: string;
     sort_order: number;
+    is_system?: boolean;
 };
 
 type Paginator<T> = {
@@ -80,7 +81,15 @@ function removeChoice(c: ChoiceRow): void {
                         class="border-b border-neutral-100"
                     >
                         <td class="px-3 py-2 font-mono text-xs">{{ c.id }}</td>
-                        <td class="px-3 py-2 font-medium">{{ c.name }}</td>
+                        <td class="px-3 py-2 font-medium">
+                            {{ c.name }}
+                            <span
+                                v-if="c.is_system"
+                                class="ml-2 rounded bg-neutral-200 px-1.5 py-0.5 text-[10px] font-semibold text-neutral-700"
+                            >
+                                Hệ thống
+                            </span>
+                        </td>
                         <td class="px-3 py-2">{{ c.sort_order }}</td>
                         <td class="px-3 py-2 text-right">
                             <Link
@@ -89,14 +98,16 @@ function removeChoice(c: ChoiceRow): void {
                             >
                                 Sửa
                             </Link>
-                            <span class="mx-2 text-neutral-300">|</span>
-                            <button
-                                type="button"
-                                class="text-red-600 hover:underline"
-                                @click="removeChoice(c)"
-                            >
-                                Xóa
-                            </button>
+                            <template v-if="!c.is_system">
+                                <span class="mx-2 text-neutral-300">|</span>
+                                <button
+                                    type="button"
+                                    class="text-red-600 hover:underline"
+                                    @click="removeChoice(c)"
+                                >
+                                    Xóa
+                                </button>
+                            </template>
                         </td>
                     </tr>
                 </tbody>

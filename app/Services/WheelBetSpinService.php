@@ -24,11 +24,12 @@ class WheelBetSpinService
      *     is_consolation: bool,
      *     bet_amount: int,
      *     wish_category: string,
+     *     participant_name: string,
      *     points: int,
      *     wheel_round_id: int
      * }
      */
-    public function spin(User $user, int $wheelRoomId, int $wheelRoundId, int $betAmount, string $wishCategory): array
+    public function spin(User $user, int $wheelRoomId, int $wheelRoundId, int $betAmount, string $wishCategory, ?string $participantNameInput): array
     {
         $rows = WheelChoice::rowsForWheel();
 
@@ -40,7 +41,9 @@ class WheelBetSpinService
 
         $choiceIds = array_map(fn (array $r): int => (int) $r['id'], $rows);
 
-        return DB::transaction(function () use ($user, $wheelRoomId, $wheelRoundId, $betAmount, $wishCategory, $rows, $choiceIds) {
+        $participantName = $this->resolveParticipantName($user, $participantNameInput);
+
+        return DB::transaction(function () use ($user, $wheelRoomId, $wheelRoundId, $betAmount, $wishCategory, $rows, $choiceIds, $participantName) {
             /** @var WheelRound|null $round */
             $round = WheelRound::query()
                 ->whereKey($wheelRoundId)
@@ -124,6 +127,7 @@ class WheelBetSpinService
                     'wheel_round_number' => $round->round_number,
                     'wish_category' => $wishCategory,
                     'bet_amount' => $betAmount,
+                    'participant_name' => $participantName,
                     'result_choice_id' => $resultChoiceId,
                     'result_choice_name' => $resultName,
                     'is_consolation' => $isConsolation,
@@ -139,6 +143,7 @@ class WheelBetSpinService
                 'bet_choice_id' => $resultChoiceId,
                 'bet_amount' => $betAmount,
                 'wish_category' => $wishCategory,
+                'participant_name' => $participantName,
                 'result_choice_id' => $resultChoiceId,
                 'payout' => 0,
                 'was_rigged' => false,
@@ -155,9 +160,28 @@ class WheelBetSpinService
                 'is_consolation' => $isConsolation,
                 'bet_amount' => $betAmount,
                 'wish_category' => $wishCategory,
+                'participant_name' => $participantName,
                 'points' => (int) $locked->point,
                 'wheel_round_id' => (int) $round->getKey(),
             ];
         });
+    }
+
+    /**
+     * Tên hiển thị trên lượt quay: ưu tiên ô nhập; không có thì tên tài khoản (nếu hợp lệ); cuối cùng tên ngẫu nhiên gọn.
+     */
+    private function resolveParticipantName(User $user, ?string $input): string
+    {
+        $trimmed = trim((string) $input);
+        if ($trimmed !== '') {
+            return mb_substr($trimmed, 0, 120);
+        }
+
+        $fromUser = trim((string) $user->name);
+        if ($fromUser !== '' && ! str_starts_with($fromUser, 'user_')) {
+            return mb_substr($fromUser, 0, 120);
+        }
+
+        return 'Bạn '.str_pad((string) random_int(0, 999_999), 6, '0', STR_PAD_LEFT);
     }
 }

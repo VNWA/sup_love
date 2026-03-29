@@ -11,7 +11,13 @@ import {
 } from '@/routes/admin/wheel-choices';
 
 const props = defineProps<{
-    choice: { id: number; name: string; sort_order: number; color: string | null };
+    choice: {
+        id: number;
+        name: string;
+        sort_order: number;
+        color: string | null;
+        is_system?: boolean;
+    };
 }>();
 
 const form = useForm({
@@ -43,6 +49,13 @@ function submit(): void {
         </Link>
 
         <h1 class="mt-4 text-xl font-bold">Sửa ô #{{ choice.id }}</h1>
+        <p
+            v-if="choice.is_system"
+            class="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950"
+        >
+            Đây là ô hệ thống (ô an ủi). Không thể xóa; chỉ được chỉnh tên, thứ
+            tự và màu.
+        </p>
 
         <form class="mt-6 space-y-4" @submit.prevent="submit">
             <div class="space-y-1">

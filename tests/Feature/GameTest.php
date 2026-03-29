@@ -39,19 +39,23 @@ class GameTest extends TestCase
 
     private function firstChoiceId(): int
     {
-        return (int) WheelChoice::query()->orderBy('id')->value('id');
+        return (int) WheelChoice::query()
+            ->where('id', '!=', WheelChoice::CONSOLATION_CHOICE_ID)
+            ->orderBy('id')
+            ->value('id');
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function spinPayload(int $roomId, int $roundId, int $betAmount = 100_000, string $wishCategory = 'tinh_yeu'): array
+    private function spinPayload(int $roomId, int $roundId, int $betAmount = 100_000, string $wishCategory = 'tinh_yeu', ?string $participantName = 'Nguyễn Văn A'): array
     {
         return [
             'wheel_room_id' => $roomId,
             'wheel_round_id' => $roundId,
             'bet_amount' => $betAmount,
             'wish_category' => $wishCategory,
+            'participant_name' => $participantName,
         ];
     }
 

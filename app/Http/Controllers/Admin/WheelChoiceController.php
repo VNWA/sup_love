@@ -41,7 +41,7 @@ class WheelChoiceController extends Controller
     public function edit(WheelChoice $wheelChoice): Response
     {
         return Inertia::render('admin/wheel-choices/Edit', [
-            'choice' => $wheelChoice->only(['id', 'name', 'sort_order', 'color']),
+            'choice' => $wheelChoice->only(['id', 'name', 'sort_order', 'color', 'is_system']),
         ]);
     }
 
@@ -55,6 +55,11 @@ class WheelChoiceController extends Controller
 
     public function destroy(WheelChoice $wheelChoice): RedirectResponse
     {
+        if ($wheelChoice->is_system) {
+            return redirect()->route('admin.wheel-choices.index')
+                ->with('error', 'Không xóa được ô hệ thống (ô an ủi). Chỉ được chỉnh sửa.');
+        }
+
         $referenced = WheelSpin::query()
             ->where(function ($q) use ($wheelChoice): void {
                 $q->where('bet_choice_id', $wheelChoice->getKey())

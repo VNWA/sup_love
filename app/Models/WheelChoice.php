@@ -12,8 +12,12 @@ class WheelChoice extends Model
     /** @use HasFactory<WheelChoiceFactory> */
     use HasFactory;
 
-    /** Ô “Chúc bạn may mắn lần sau” (seed trong migration). */
-    public const CONSOLATION_CHOICE_ID = 8;
+    /** Ô “Chúc bạn may mắn lần sau” — id 0, không xóa (chỉ sửa). */
+    public const CONSOLATION_CHOICE_ID = 0;
+
+    public $incrementing = false;
+
+    protected $keyType = 'int';
 
     /**
      * @var list<string>
@@ -23,6 +27,33 @@ class WheelChoice extends Model
         'sort_order',
         'color',
     ];
+
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_system' => 'boolean',
+        ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (WheelChoice $choice): void {
+            if ($choice->getKey() !== null) {
+                return;
+            }
+
+            $max = (int) (static::query()->max('id') ?? -1);
+            $next = $max + 1;
+            if ($next <= 0) {
+                $next = 1;
+            }
+
+            $choice->setAttribute('id', $next);
+        });
+    }
 
     /**
      * Màu cố định theo thứ tự ô trên vòng (không lưu DB).

@@ -9,18 +9,8 @@ return [
 
     'max_bet' => (int) env('WHEEL_MAX_BET', 99_999),
 
-    /**
-     * Tên ô mặc định khi chạy WheelChoiceSeeder (migrate:fresh).
-     * Admin quản lý đầy đủ tại /admin/wheel-choices.
-     */
-    'default_choice_names' => [
-        'Hôn nhân',
-        'Tình yêu',
-        'Gia đình',
-        'Sự nghiệp',
-        'Sức khỏe',
-        'Bạn bè',
-        'Du lịch',
-        'Tài chính',
-    ],
+/**
+ * Các ô vòng quay mặc định nằm trong WheelChoiceSeeder (migrate:fresh --seed).
+ * id 0 = «Chúc bạn may mắn lần sau» (ô hệ thống, không xóa). Admin: /admin/wheel-choices.
+ */
 ];

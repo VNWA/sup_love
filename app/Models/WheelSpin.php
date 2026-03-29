@@ -17,6 +17,7 @@ class WheelSpin extends Model
         'bet_choice_id',
         'bet_amount',
         'wish_category',
+        'participant_name',
         'result_choice_id',
         'payout',
         'was_rigged',

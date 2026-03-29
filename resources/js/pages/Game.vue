@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, router, useHttp, usePage } from '@inertiajs/vue3';
 import { CloudOff, PartyPopper, Sparkles, X } from 'lucide-vue-next';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import ClubMobileShell from '@/components/club/ClubMobileShell.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { subscribeWheelRoom } from '@/echo';
+import { drawLuckyWheel } from '@/lib/luckyWheelCanvas';
 import {
     history as accountHistory,
     prizeWins as accountPrizeWins,
@@ -31,6 +32,8 @@ const props = defineProps<{
         is_consolation: boolean;
     } | null;
     wheelChoices: WheelChoiceRow[];
+    /** Tên gợi ý từ tài khoản (bỏ qua nếu là tên auto user_…). */
+    defaultParticipantName: string;
 }>();
 
 /** Các lĩnh vực mong muốn — cố định frontend, không lấy từ API. */
@@ -75,38 +78,6 @@ watch(
     { immediate: true },
 );
 
-const segmentAngle = computed(() => gocMoiO.value);
-
-const conicBackground = computed(() => {
-    const goc = gocMoiO.value;
-    const list = giaiThuong.value;
-
-    if (list.length === 0) {
-        return 'transparent';
-    }
-
-    const stops = list
-        .map((g, i) => {
-            const start = i * goc;
-            const end = (i + 1) * goc;
-
-            return `${g.color} ${start}deg ${end}deg`;
-        })
-        .join(', ');
-
-    return `conic-gradient(from 0deg at 50% 50%, ${stops})`;
-});
-
-function gocChuTheoBanKinh(midDeg: number): number {
-    const t = midDeg + 90;
-
-    if (midDeg > 90 && midDeg < 270) {
-        return t + 180;
-    }
-
-    return t;
-}
-
 function chuHienThiTrenVong(g: GiaiThuong): string {
     const n = giaiThuong.value.length;
 
@@ -145,6 +116,68 @@ function mauChuSangTuongPhan(hex: string): boolean {
     return luminance > 0.72;
 }
 
+const wheelCanvasSegments = computed(() =>
+    giaiThuong.value.map((g) => ({
+        color: g.color,
+        label: chuHienThiTrenVong(g),
+        textColor: mauChuSangTuongPhan(g.color) ? '#3e2723' : '#ffffff',
+    })),
+);
+
+const wheelCanvasRef = ref<HTMLCanvasElement | null>(null);
+const wheelFrameRef = ref<HTMLElement | null>(null);
+let wheelResizeObserver: ResizeObserver | null = null;
+
+function paintWheel(): void {
+    const canvas = wheelCanvasRef.value;
+
+    if (!canvas) {
+        return;
+    }
+
+    const rect = canvas.getBoundingClientRect();
+
+    if (rect.width < 2 || rect.height < 2) {
+        return;
+    }
+
+    const w = Math.floor(rect.width);
+    const h = Math.floor(rect.height);
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+        return;
+    }
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, h);
+    drawLuckyWheel(ctx, {
+        width: w,
+        height: h,
+        segments: wheelCanvasSegments.value,
+        /** Đẩy chữ ra gần viền để nút giữa ít che hơn. */
+        labelRadiusRatio: 0.46,
+        outerRadiusRatio: 0.94,
+    });
+}
+
+watch(
+    wheelCanvasSegments,
+    () => {
+        nextTick(() => {
+            requestAnimationFrame(() => {
+                paintWheel();
+            });
+        });
+    },
+    { deep: true },
+);
+
 function gocTamOI(index: number): number {
     const goc = gocMoiO.value;
 
@@ -182,6 +215,7 @@ const spinHttp = useHttp({
     wheel_round_id: 0,
     bet_amount: 0,
     wish_category: '',
+    participant_name: '',
 });
 
 const activeRound = ref(props.wheelRound);
@@ -220,6 +254,7 @@ watch(
         if (prevId !== undefined && id !== prevId) {
             betAmount.value = 0;
             wishCategory.value = '';
+            participantName.value = props.defaultParticipantName ?? '';
         }
     },
 );
@@ -267,15 +302,44 @@ onMounted(() => {
             });
         },
     });
+
+    nextTick(() => {
+        const schedulePaint = (): void => {
+            requestAnimationFrame(() => {
+                paintWheel();
+            });
+        };
+
+        schedulePaint();
+
+        const frame = wheelFrameRef.value;
+
+        if (frame) {
+            wheelResizeObserver = new ResizeObserver(() => {
+                schedulePaint();
+            });
+            wheelResizeObserver.observe(frame);
+        }
+    });
 });
 
 onUnmounted(() => {
+    wheelResizeObserver?.disconnect();
+    wheelResizeObserver = null;
     unsubscribeWheel?.();
 });
 
 /** Số tiền ghi nhận (không trừ ví trong game). */
 const betAmount = ref(0);
 const wishCategory = ref('');
+const participantName = ref(props.defaultParticipantName ?? '');
+
+watch(
+    () => props.defaultParticipantName,
+    (v) => {
+        participantName.value = v ?? '';
+    },
+);
 
 const effectiveBet = computed(() => {
     const n = Math.floor(Number(betAmount.value));
@@ -288,6 +352,8 @@ type SpinApiResponse = {
     result: { id: number; name: string; color: string };
     is_consolation: boolean;
     bet_amount: number;
+    wish_category: string;
+    participant_name: string;
     points: number;
     wheel_round_id: number;
 };
@@ -363,6 +429,7 @@ async function spin(): Promise<void> {
         spinHttp.wheel_round_id = activeRound.value.id;
         spinHttp.bet_amount = effectiveBet.value;
         spinHttp.wish_category = wishCategory.value;
+        spinHttp.participant_name = participantName.value.trim();
 
         const res = (await spinHttp.post(
             spinWheelRequest.url(),
@@ -384,8 +451,9 @@ async function spin(): Promise<void> {
             hasSpunThisRound.value = true;
             wishCategory.value = '';
             betAmount.value = 0;
+            participantName.value = props.defaultParticipantName ?? '';
             router.reload({
-                only: ['hasSpunCurrentRound', 'lastSpinPreview', 'wheelRound'],
+                only: ['hasSpunCurrentRound', 'lastSpinPreview', 'wheelRound', 'defaultParticipantName'],
             });
         }, 4200);
     } catch {
@@ -401,6 +469,7 @@ function spinErrorMessage(): string {
         e.wheel_round_id ||
         e.bet_amount ||
         e.wish_category ||
+        e.participant_name ||
         e.wheel ||
         'Không quay được.'
     );
@@ -412,7 +481,7 @@ function spinErrorMessage(): string {
     <Head title="Vòng quay may mắn" />
 
     <ClubMobileShell :points-display="localPoints">
-        <div class="mx-auto max-w-sm">
+        <div class="mx-auto w-full min-w-0 max-w-sm">
             <!-- <div class="mb-2 flex items-center justify-between gap-2">
                 <h2
                     class="text-sm font-bold uppercase tracking-wide text-neutral-900"
@@ -472,6 +541,8 @@ function spinErrorMessage(): string {
 
             <p class="mb-3 px-2 text-center text-xs leading-relaxed text-neutral-600">
                 Nhập
+                <strong class="text-neutral-800">tên</strong>
+                (để hiển thị trên lượt quay),
                 <strong class="text-neutral-800">số điểm</strong>
                 và chọn
                 <strong class="text-neutral-800">lĩnh vực mong muốn</strong>
@@ -482,12 +553,29 @@ function spinErrorMessage(): string {
             </p>
 
             <div v-if="phongDangMo && activeRound !== null && !hasSpunThisRound"
-                class="mb-4 space-y-3 rounded-xl border border-pink-200 bg-pink-50/90 px-3 py-3 shadow-sm ring-1 ring-pink-100">
-                <div class="space-y-2">
+                class="mb-4 w-full min-w-0 space-y-3 rounded-xl border border-pink-200 bg-pink-50/90 px-2.5 py-3 shadow-sm ring-1 ring-pink-100 sm:px-3">
+                <div class="space-y-1">
+                    <Label for="participant-name-field" class="text-neutral-700">Tên hiển thị</Label>
+                    <Input
+                        id="participant-name-field"
+                        v-model="participantName"
+                        type="text"
+                        maxlength="120"
+                        :disabled="spinning"
+                        autocomplete="name"
+                        class="bg-white"
+                        placeholder="Ví dụ: Lan Anh — để trống sẽ tự tạo tên"
+                    />
+                    <p class="text-[11px] text-neutral-500">
+                        Để trống: dùng tên tài khoản (nếu có) hoặc hệ thống gán tên ngẫu nhiên.
+                    </p>
+                </div>
+                <div class="min-w-0 space-y-2">
                     <Label class="text-neutral-700">Lĩnh vực mong muốn</Label>
-                    <div class="flex flex-wrap gap-2" role="radiogroup" aria-label="Lĩnh vực mong muốn">
+                    <div class="flex max-w-full flex-wrap gap-1.5 sm:gap-2" role="radiogroup"
+                        aria-label="Lĩnh vực mong muốn">
                         <label v-for="opt in WISH_OPTIONS" :key="opt.value"
-                            class="flex cursor-pointer items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-semibold transition-colors has-disabled:cursor-not-allowed has-disabled:opacity-60"
+                            class="flex min-w-0 max-w-full cursor-pointer items-center gap-1.5 rounded-full border px-2 py-1.5 text-[11px] font-semibold transition-colors has-disabled:cursor-not-allowed has-disabled:opacity-60 sm:gap-2 sm:px-2.5 sm:text-xs"
                             :class="wishCategory === opt.value
                                 ? 'border-[#DA2778] bg-pink-100 text-[#9d174d] ring-2 ring-pink-200/80'
                                 : 'border-pink-200/90 bg-white text-neutral-700 hover:border-pink-300'
@@ -495,7 +583,7 @@ function spinErrorMessage(): string {
                             <input v-model="wishCategory" type="radio"
                                 class="size-3.5 shrink-0 border-neutral-300 accent-[#DA2778]" :value="opt.value"
                                 :disabled="spinning" />
-                            <span>{{ opt.label }}</span>
+                            <span class="min-w-0 break-words">{{ opt.label }}</span>
                         </label>
                     </div>
                 </div>
@@ -510,8 +598,11 @@ function spinErrorMessage(): string {
                 {{ spinErrorMessage() }}
             </p>
 
-            <div class="game-wheel-frame relative mx-auto aspect-square w-full max-w-[300px]">
-                <div class="absolute inset-0 overflow-visible rounded-full border-[7px] border-[#ff5722] shadow-[0_4px_14px_rgba(0,0,0,0.12)]"
+            <div
+                ref="wheelFrameRef"
+                class="game-wheel-frame relative mx-auto aspect-square w-full max-w-[min(100%,22rem)] shrink-0 overflow-hidden rounded-full"
+            >
+                <div class="absolute inset-0 box-border overflow-hidden rounded-full border-[7px] border-[#ff5722] shadow-[0_4px_14px_rgba(0,0,0,0.12)]"
                     :style="{
                         transformOrigin: '50% 50%',
                         transform: `rotate(${rotation}deg)`,
@@ -519,48 +610,13 @@ function spinErrorMessage(): string {
                             ? 'transform 4s cubic-bezier(0.12, 0.8, 0.22, 1)'
                             : 'none',
                     }">
-                    <div class="absolute inset-[7px] overflow-hidden rounded-full"
-                        :style="{ background: conicBackground }">
-                        <div v-for="i in giaiThuong.length" :key="'bulb-' + i"
-                            class="pointer-events-none absolute left-1/2 top-1/2 z-[5] w-0" :style="{
-                                height: 'calc(50% - 2px)',
-                                transformOrigin: '50% 100%',
-                                transform: `translate(-50%, -100%) rotate(${i * segmentAngle}deg)`,
-                            }">
-                            <div
-                                class="absolute left-1/2 top-0 size-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#ffeb3b] shadow-[0_0_10px_3px_rgba(255,235,59,0.95),0_0_2px_#fff]" />
-                        </div>
-
-                        <div v-for="(giai, i) in giaiThuong" :key="String(giai.id) + '-' + i"
-                            class="pointer-events-none absolute left-1/2 top-1/2 z-[8] w-0" :style="{
-                                height: '38%',
-                                transformOrigin: '50% 100%',
-                                transform: `translate(-50%, -100%) rotate(${i * segmentAngle + segmentAngle / 2}deg)`,
-                            }">
-                            <span
-                                class="absolute left-1/2 top-0 max-w-[min(6.5rem,36vw)] -translate-x-1/2 -translate-y-1/2 whitespace-normal text-center font-extrabold leading-none tracking-wide text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.55)]"
-                                :class="[
-                                    mauChuSangTuongPhan(giai.color)
-                                        ? '!text-[#3e2723]'
-                                        : '',
-                                    giaiThuong.length > 14
-                                        ? 'text-[7px]'
-                                        : giaiThuong.length > 10
-                                            ? 'text-[8px]'
-                                            : giaiThuong.length > 8
-                                                ? 'text-[9px]'
-                                                : 'text-[10px]',
-                                ]" :style="{
-                                    transform: `translate(-50%, 0) rotate(${gocChuTheoBanKinh(i * segmentAngle + segmentAngle / 2)}deg)`,
-                                }">
-                                {{ chuHienThiTrenVong(giai) }}
-                            </span>
-                        </div>
-                    </div>
+                    <canvas ref="wheelCanvasRef"
+                        class="absolute inset-0 block size-full max-h-full max-w-full rounded-full"
+                        aria-hidden="true" />
                 </div>
 
                 <button type="button"
-                    class="absolute left-1/2 top-1/2 z-30 flex h-[4.5rem] w-[4.5rem] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[5px] border-white bg-[#DA2778] text-center text-[12px] font-extrabold uppercase leading-tight text-white shadow-md transition enabled:hover:scale-105 enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                    class="absolute left-1/2 top-1/2 z-30 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[4px] border-white bg-[#DA2778] text-center text-[11px] font-extrabold uppercase leading-tight text-white shadow-md transition enabled:hover:scale-105 enabled:active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:h-[4.25rem] sm:w-[4.25rem] sm:border-[5px] sm:text-[12px]"
                     :disabled="spinning || !coTheQuay" @click="spin">
                     <span class="pointer-events-none absolute left-1/2 top-0 z-10 -translate-x-1/2 -translate-y-[2px]"
                         aria-hidden="true">
@@ -576,11 +632,11 @@ function spinErrorMessage(): string {
                     enter-to-class="opacity-100" leave-active-class="transition duration-150 ease-in"
                     leave-from-class="opacity-100" leave-to-class="opacity-0">
                     <div v-if="winModalOpen && laGiaiThuong"
-                        class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                        class="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto overflow-x-hidden  sm:p-4">
                         <div class="absolute inset-0 bg-black/45 backdrop-blur-[1px]" aria-hidden="true"
                             @click="dongKetQuaModal" />
                         <div role="dialog" aria-modal="true" aria-live="polite"
-                            class="game-result-panel relative z-10 flex max-h-[min(90vh,640px)] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-[#DA2778]/30 bg-gradient-to-b from-pink-50 via-white to-rose-50 shadow-xl ring-1 ring-pink-100/80">
+                            class="game-result-panel relative z-10 my-auto flex max-h-[min(90dvh,640px)] w-full min-w-0 max-w-[min(24rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-[#DA2778]/30 bg-gradient-to-b from-pink-50 via-white to-rose-50 shadow-xl ring-1 ring-pink-100/80">
                             <button type="button"
                                 class="absolute right-2 top-2 z-20 rounded-full p-2 text-neutral-500 transition hover:bg-black/5 hover:text-neutral-800"
                                 aria-label="Đóng" @click="dongKetQuaModal">
@@ -656,11 +712,11 @@ function spinErrorMessage(): string {
                     enter-to-class="opacity-100" leave-active-class="transition duration-150 ease-in"
                     leave-from-class="opacity-100" leave-to-class="opacity-0">
                     <div v-if="winModalOpen && laAnUi"
-                        class="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                        class="fixed inset-0 z-[200] flex items-center justify-center overflow-y-auto overflow-x-hidden p-3 sm:p-4">
                         <div class="absolute inset-0 bg-black/45 backdrop-blur-[1px]" aria-hidden="true"
                             @click="dongKetQuaModal" />
                         <div role="dialog" aria-modal="true" aria-live="polite"
-                            class="game-result-panel relative z-10 flex max-h-[min(90vh,640px)] w-full max-w-sm flex-col overflow-hidden rounded-2xl border border-slate-300/80 bg-gradient-to-b from-slate-100 via-slate-50 to-slate-100 shadow-xl ring-1 ring-slate-200/90">
+                            class="game-result-panel relative z-10 my-auto flex max-h-[min(90dvh,640px)] w-full min-w-0 max-w-[min(24rem,calc(100vw-1.5rem))] flex-col overflow-hidden rounded-2xl border border-slate-300/80 bg-gradient-to-b from-slate-100 via-slate-50 to-slate-100 shadow-xl ring-1 ring-slate-200/90">
                             <button type="button"
                                 class="absolute right-2 top-2 z-20 rounded-full p-2 text-neutral-500 transition hover:bg-black/5 hover:text-neutral-800"
                                 aria-label="Đóng" @click="dongKetQuaModal">

@@ -74,7 +74,10 @@ class AdminWheelRoomTest extends TestCase
         $admin->assignRole('admin');
 
         $room = WheelRoom::query()->where('slug', 'default')->firstOrFail();
-        $choiceId = (int) WheelChoice::query()->orderBy('id')->value('id');
+        $choiceId = (int) WheelChoice::query()
+            ->where('id', '!=', WheelChoice::CONSOLATION_CHOICE_ID)
+            ->orderBy('id')
+            ->value('id');
 
         $this->actingAs($admin)
             ->post(route('admin.wheel-rooms.rounds.store', $room), [
@@ -99,7 +102,10 @@ class AdminWheelRoomTest extends TestCase
         $admin->assignRole('admin');
 
         $room = WheelRoom::query()->where('slug', 'default')->firstOrFail();
-        $choiceId = (int) WheelChoice::query()->orderBy('id')->value('id');
+        $choiceId = (int) WheelChoice::query()
+            ->where('id', '!=', WheelChoice::CONSOLATION_CHOICE_ID)
+            ->orderBy('id')
+            ->value('id');
 
         $this->actingAs($admin)
             ->post(route('admin.wheel-rooms.rounds.store', $room), [
@@ -122,7 +128,10 @@ class AdminWheelRoomTest extends TestCase
         $admin->assignRole('admin');
 
         $room = WheelRoom::query()->where('slug', 'default')->firstOrFail();
-        $choiceId = (int) WheelChoice::query()->orderBy('id')->value('id');
+        $choiceId = (int) WheelChoice::query()
+            ->where('id', '!=', WheelChoice::CONSOLATION_CHOICE_ID)
+            ->orderBy('id')
+            ->value('id');
 
         $this->actingAs($admin)
             ->post(route('admin.wheel-rooms.rounds.store', $room), [
