@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { computed, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, watch } from 'vue';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { vnFromNow } from '@/composables/useVnFromNow';
@@ -15,6 +16,7 @@ type ChoiceOpt = { id: number; name: string };
 type RoundRow = {
     id: number;
     round_number: number;
+    name: string;
     status: string;
     wheel_spins_count: number;
     started_at: string | null;
@@ -38,12 +40,15 @@ const props = defineProps<{
     openRound: {
         id: number;
         round_number: number;
+        name: string;
         result_choice_id: number;
         result_choice: { id: number; name: string } | null;
         started_at: string | null;
     } | null;
     rounds: Paginator<RoundRow>;
     choicesForRound: ChoiceOpt[];
+    /** Số thứ tự vòng tiếp theo (để gợi ý tên). */
+    nextRoundNumber: number;
 }>();
 
 const page = usePage();
@@ -51,9 +56,22 @@ const flashSuccess = computed(
     () => (page.props.flash as { success?: string | null } | undefined)?.success,
 );
 
+function defaultRoundLabel(n: number): string {
+    return `Vòng quay #${n}`;
+}
+
 const roundForm = useForm({
     result_choice_id: null as number | null,
+    name: '',
 });
+
+watch(
+    () => props.nextRoundNumber,
+    (n) => {
+        roundForm.name = defaultRoundLabel(n);
+    },
+    { immediate: true },
+);
 
 function submitNewRound(): void {
     if (roundForm.result_choice_id === null) {
@@ -64,6 +82,7 @@ function submitNewRound(): void {
         preserveScroll: true,
         onSuccess: () => {
             roundForm.reset();
+            roundForm.name = defaultRoundLabel(props.nextRoundNumber);
             roundForm.clearErrors();
         },
     });
@@ -88,6 +107,7 @@ function statusLabel(s: string): string {
     if (s === 'open') {
         return 'Đang mở';
     }
+
     if (s === 'closed') {
         return 'Đã kết thúc';
     }
@@ -99,6 +119,7 @@ function statusClass(s: string): string {
     if (s === 'open') {
         return 'bg-emerald-100 text-emerald-900';
     }
+
     if (s === 'closed') {
         return 'bg-neutral-100 text-neutral-800';
     }
@@ -187,8 +208,8 @@ onUnmounted(() => {
                     class="rounded-xl border border-pink-100 bg-pink-50/90 px-4 py-4 ring-1 ring-pink-100"
                 >
                     <p class="font-semibold text-neutral-900">
-                        Vòng
-                        <span class="text-[#DA2778]">#{{ openRound.round_number }}</span>
+                        {{ openRound.name
+                        }}<span class="text-neutral-500"> · #{{ openRound.round_number }}</span>
                         <span
                             class="ml-2 inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-900"
                         >
@@ -243,6 +264,30 @@ onUnmounted(() => {
                 </p>
 
                 <form v-if="!openRound" class="mt-4 space-y-3" @submit.prevent="submitNewRound">
+                    <div class="space-y-1">
+                        <Label for="round_name">Tên vòng quay</Label>
+                        <Input
+                            id="round_name"
+                            v-model="roundForm.name"
+                            type="text"
+                            maxlength="120"
+                            class="bg-white"
+                            :placeholder="defaultRoundLabel(nextRoundNumber)"
+                        />
+                        <p class="text-[11px] text-neutral-500">
+                            Gợi ý theo thứ tự:
+                            <span class="font-medium text-neutral-700">{{
+                                defaultRoundLabel(nextRoundNumber)
+                            }}</span>
+                            — có thể sửa tùy ý.
+                        </p>
+                        <p
+                            v-if="roundForm.errors.name"
+                            class="text-xs text-red-600"
+                        >
+                            {{ roundForm.errors.name }}
+                        </p>
+                    </div>
                     <div class="space-y-1">
                         <Label for="result_choice_id">Ô kết quả (vòng quay dừng tại đây)</Label>
                         <select
@@ -303,7 +348,7 @@ onUnmounted(() => {
                         class="border-b border-neutral-200 bg-neutral-50 text-xs font-semibold uppercase text-neutral-600"
                     >
                         <tr>
-                            <th class="px-3 py-2">Vòng</th>
+                            <th class="px-3 py-2">Tên / STT</th>
                             <th class="px-3 py-2">Trạng thái</th>
                             <th class="px-3 py-2">Ô kết quả</th>
                             <th class="px-3 py-2 text-right">Lượt quay</th>
@@ -317,7 +362,14 @@ onUnmounted(() => {
                             :key="w.id"
                             class="border-b border-neutral-100 align-top"
                         >
-                            <td class="px-3 py-2 font-semibold">{{ w.round_number }}</td>
+                            <td class="px-3 py-2">
+                                <span class="font-semibold text-neutral-900">{{
+                                    w.name || `Vòng #${w.round_number}`
+                                }}</span>
+                                <span class="block text-xs font-normal text-neutral-500"
+                                    >#{{ w.round_number }}</span
+                                >
+                            </td>
                             <td class="px-3 py-2">
                                 <span
                                     class="inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold"

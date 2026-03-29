@@ -24,7 +24,6 @@ class SpinWheelController extends Controller
             (int) $request->validated('wheel_round_id'),
             (int) $request->validated('bet_amount'),
             (string) $request->validated('wish_category'),
-            $request->validated('participant_name'),
         );
 
         return response()->json($result);

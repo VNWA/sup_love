@@ -17,13 +17,13 @@ class WheelRoundService
     /**
      * Khởi tạo vòng quay mới (kết quả đã định sẵn). Chỉ khi không còn vòng đang mở.
      */
-    public function startRound(WheelRoom $room, int $resultChoiceId, User $admin): WheelRound
+    public function startRound(WheelRoom $room, int $resultChoiceId, User $admin, ?string $displayName = null): WheelRound
     {
         if (! $admin->hasRole('admin')) {
             abort(403);
         }
 
-        return DB::transaction(function () use ($room, $resultChoiceId) {
+        return DB::transaction(function () use ($room, $resultChoiceId, $displayName) {
             /** @var WheelRoom $lockedRoom */
             $lockedRoom = WheelRoom::query()->whereKey($room->getKey())->lockForUpdate()->firstOrFail();
 
@@ -49,9 +49,14 @@ class WheelRoundService
                 ->where('wheel_room_id', $lockedRoom->getKey())
                 ->max('round_number') ?? 0) + 1;
 
+            $name = $displayName !== null && trim($displayName) !== ''
+                ? mb_substr(trim($displayName), 0, 120)
+                : sprintf('Vòng quay #%d', $nextNumber);
+
             $round = WheelRound::query()->create([
                 'wheel_room_id' => $lockedRoom->getKey(),
                 'round_number' => $nextNumber,
+                'name' => $name,
                 'status' => WheelRoundStatus::Open,
                 'result_choice_id' => $resultChoiceId,
                 'started_at' => now(),

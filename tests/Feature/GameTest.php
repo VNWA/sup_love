@@ -48,14 +48,13 @@ class GameTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    private function spinPayload(int $roomId, int $roundId, int $betAmount = 100_000, string $wishCategory = 'tinh_yeu', ?string $participantName = 'Nguyễn Văn A'): array
+    private function spinPayload(int $roomId, int $roundId, int $betAmount = 100_000, string $wishCategory = 'tinh_yeu'): array
     {
         return [
             'wheel_room_id' => $roomId,
             'wheel_round_id' => $roundId,
             'bet_amount' => $betAmount,
             'wish_category' => $wishCategory,
-            'participant_name' => $participantName,
         ];
     }
 
@@ -66,6 +65,7 @@ class GameTest extends TestCase
         return WheelRound::query()->create([
             'wheel_room_id' => $room->getKey(),
             'round_number' => 1,
+            'name' => 'Vòng quay #1',
             'status' => WheelRoundStatus::Open,
             'result_choice_id' => $resultChoiceId,
             'started_at' => now(),
@@ -232,6 +232,7 @@ class GameTest extends TestCase
         $round = WheelRound::query()->create([
             'wheel_room_id' => $room->getKey(),
             'round_number' => 1,
+            'name' => 'Vòng quay #1',
             'status' => WheelRoundStatus::Open,
             'result_choice_id' => $resultId,
             'started_at' => now(),

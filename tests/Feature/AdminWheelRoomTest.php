@@ -63,7 +63,8 @@ class AdminWheelRoomTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('admin/wheel-rooms/rounds/Index')
                 ->has('room')
-                ->has('rounds.data'));
+                ->has('rounds.data')
+                ->where('nextRoundNumber', 1));
     }
 
     public function test_admin_can_start_round_and_broadcasts_event(): void
@@ -88,6 +89,7 @@ class AdminWheelRoomTest extends TestCase
         $this->assertSame(1, WheelRound::query()->where('wheel_room_id', $room->getKey())->count());
         $round = WheelRound::query()->where('wheel_room_id', $room->getKey())->firstOrFail();
         $this->assertSame(WheelRoundStatus::Open, $round->status);
+        $this->assertSame('Vòng quay #1', $round->name);
 
         Event::assertDispatched(WheelRoundStarted::class, function (WheelRoundStarted $e) use ($room, $round): bool {
             return $e->wheelRoomId === (int) $room->getKey()
@@ -154,5 +156,27 @@ class AdminWheelRoomTest extends TestCase
                 && $e->wheelRoundId === (int) $round->getKey()
                 && $e->roundNumber === 1;
         });
+    }
+
+    public function test_admin_can_create_round_with_custom_name(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+
+        $room = WheelRoom::query()->where('slug', 'default')->firstOrFail();
+        $choiceId = (int) WheelChoice::query()
+            ->where('id', '!=', WheelChoice::CONSOLATION_CHOICE_ID)
+            ->orderBy('id')
+            ->value('id');
+
+        $this->actingAs($admin)
+            ->post(route('admin.wheel-rooms.rounds.store', $room), [
+                'result_choice_id' => $choiceId,
+                'name' => 'Khai xuân 2026',
+            ])
+            ->assertRedirect(route('admin.wheel-rooms.rounds.index', $room));
+
+        $round = WheelRound::query()->where('wheel_room_id', $room->getKey())->firstOrFail();
+        $this->assertSame('Khai xuân 2026', $round->name);
     }
 }

@@ -20,6 +20,7 @@ class StoreWheelRoundRequest extends FormRequest
     {
         return [
             'result_choice_id' => ['required', 'integer', Rule::exists('wheel_choices', 'id')],
+            'name' => ['nullable', 'string', 'max:120'],
         ];
     }
 }

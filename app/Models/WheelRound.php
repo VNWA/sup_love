@@ -15,6 +15,7 @@ class WheelRound extends Model
     protected $fillable = [
         'wheel_room_id',
         'round_number',
+        'name',
         'status',
         'result_choice_id',
         'started_at',

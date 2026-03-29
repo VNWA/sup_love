@@ -39,7 +39,6 @@ class SpinWheelRequest extends FormRequest
             'wheel_round_id' => ['required', 'integer', RuleFacade::exists('wheel_rounds', 'id')],
             'bet_amount' => ['required', 'integer', 'min:1'],
             'wish_category' => ['required', 'string', RuleFacade::in(self::WISH_CATEGORY_KEYS)],
-            'participant_name' => ['nullable', 'string', 'max:120'],
         ];
     }
 }

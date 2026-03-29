@@ -38,6 +38,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('wheel_room_id')->constrained('wheel_rooms')->cascadeOnDelete();
             $table->unsignedInteger('round_number');
+            $table->string('name', 120)->default('');
             $table->string('status', 16);
             $table->foreignId('result_choice_id')->constrained('wheel_choices')->restrictOnDelete();
             $table->timestamp('started_at')->nullable();
@@ -56,7 +57,6 @@ return new class extends Migration
             $table->foreignId('bet_choice_id')->constrained('wheel_choices')->restrictOnDelete();
             $table->unsignedInteger('bet_amount');
             $table->string('wish_category', 64)->nullable();
-            $table->string('participant_name', 120);
             $table->foreignId('result_choice_id')->constrained('wheel_choices')->restrictOnDelete();
             $table->unsignedInteger('payout')->default(0);
             $table->boolean('was_rigged')->default(false);

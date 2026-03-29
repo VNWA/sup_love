@@ -58,14 +58,6 @@ class GamePageController extends Controller
             }
         }
 
-        $defaultParticipantName = '';
-        if ($user !== null) {
-            $n = trim((string) $user->name);
-            if ($n !== '' && ! str_starts_with($n, 'user_')) {
-                $defaultParticipantName = $n;
-            }
-        }
-
         return Inertia::render('Game', [
             'wheelRoom' => [
                 'id' => (int) $room->getKey(),
@@ -80,7 +72,6 @@ class GamePageController extends Controller
             'hasSpunCurrentRound' => $hasSpunCurrentRound,
             'lastSpinPreview' => $lastSpinPreview,
             'wheelChoices' => WheelChoice::rowsForWheel(),
-            'defaultParticipantName' => $defaultParticipantName,
         ]);
     }
 

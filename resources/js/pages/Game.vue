@@ -32,8 +32,6 @@ const props = defineProps<{
         is_consolation: boolean;
     } | null;
     wheelChoices: WheelChoiceRow[];
-    /** Tên gợi ý từ tài khoản (bỏ qua nếu là tên auto user_…). */
-    defaultParticipantName: string;
 }>();
 
 /** Các lĩnh vực mong muốn — cố định frontend, không lấy từ API. */
@@ -215,7 +213,6 @@ const spinHttp = useHttp({
     wheel_round_id: 0,
     bet_amount: 0,
     wish_category: '',
-    participant_name: '',
 });
 
 const activeRound = ref(props.wheelRound);
@@ -254,7 +251,6 @@ watch(
         if (prevId !== undefined && id !== prevId) {
             betAmount.value = 0;
             wishCategory.value = '';
-            participantName.value = props.defaultParticipantName ?? '';
         }
     },
 );
@@ -332,14 +328,6 @@ onUnmounted(() => {
 /** Số tiền ghi nhận (không trừ ví trong game). */
 const betAmount = ref(0);
 const wishCategory = ref('');
-const participantName = ref(props.defaultParticipantName ?? '');
-
-watch(
-    () => props.defaultParticipantName,
-    (v) => {
-        participantName.value = v ?? '';
-    },
-);
 
 const effectiveBet = computed(() => {
     const n = Math.floor(Number(betAmount.value));
@@ -353,7 +341,6 @@ type SpinApiResponse = {
     is_consolation: boolean;
     bet_amount: number;
     wish_category: string;
-    participant_name: string;
     points: number;
     wheel_round_id: number;
 };
@@ -429,7 +416,6 @@ async function spin(): Promise<void> {
         spinHttp.wheel_round_id = activeRound.value.id;
         spinHttp.bet_amount = effectiveBet.value;
         spinHttp.wish_category = wishCategory.value;
-        spinHttp.participant_name = participantName.value.trim();
 
         const res = (await spinHttp.post(
             spinWheelRequest.url(),
@@ -451,9 +437,8 @@ async function spin(): Promise<void> {
             hasSpunThisRound.value = true;
             wishCategory.value = '';
             betAmount.value = 0;
-            participantName.value = props.defaultParticipantName ?? '';
             router.reload({
-                only: ['hasSpunCurrentRound', 'lastSpinPreview', 'wheelRound', 'defaultParticipantName'],
+                only: ['hasSpunCurrentRound', 'lastSpinPreview', 'wheelRound'],
             });
         }, 4200);
     } catch {
@@ -469,7 +454,6 @@ function spinErrorMessage(): string {
         e.wheel_round_id ||
         e.bet_amount ||
         e.wish_category ||
-        e.participant_name ||
         e.wheel ||
         'Không quay được.'
     );
@@ -541,8 +525,6 @@ function spinErrorMessage(): string {
 
             <p class="mb-3 px-2 text-center text-xs leading-relaxed text-neutral-600">
                 Nhập
-                <strong class="text-neutral-800">tên</strong>
-                (để hiển thị trên lượt quay),
                 <strong class="text-neutral-800">số điểm</strong>
                 và chọn
                 <strong class="text-neutral-800">lĩnh vực mong muốn</strong>
@@ -554,22 +536,6 @@ function spinErrorMessage(): string {
 
             <div v-if="phongDangMo && activeRound !== null && !hasSpunThisRound"
                 class="mb-4 w-full min-w-0 space-y-3 rounded-xl border border-pink-200 bg-pink-50/90 px-2.5 py-3 shadow-sm ring-1 ring-pink-100 sm:px-3">
-                <div class="space-y-1">
-                    <Label for="participant-name-field" class="text-neutral-700">Tên hiển thị</Label>
-                    <Input
-                        id="participant-name-field"
-                        v-model="participantName"
-                        type="text"
-                        maxlength="120"
-                        :disabled="spinning"
-                        autocomplete="name"
-                        class="bg-white"
-                        placeholder="Ví dụ: Lan Anh — để trống sẽ tự tạo tên"
-                    />
-                    <p class="text-[11px] text-neutral-500">
-                        Để trống: dùng tên tài khoản (nếu có) hoặc hệ thống gán tên ngẫu nhiên.
-                    </p>
-                </div>
                 <div class="min-w-0 space-y-2">
                     <Label class="text-neutral-700">Lĩnh vực mong muốn</Label>
                     <div class="flex max-w-full flex-wrap gap-1.5 sm:gap-2" role="radiogroup"

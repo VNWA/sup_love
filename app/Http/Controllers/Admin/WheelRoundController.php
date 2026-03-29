@@ -23,6 +23,10 @@ class WheelRoundController extends Controller
     {
         $open = $wheelRoom->openRound();
 
+        $nextRoundNumber = (int) (WheelRound::query()
+            ->where('wheel_room_id', $wheelRoom->getKey())
+            ->max('round_number') ?? 0) + 1;
+
         $rounds = WheelRound::query()
             ->where('wheel_room_id', $wheelRoom->getKey())
             ->with('resultChoice:id,name')
@@ -46,6 +50,7 @@ class WheelRoundController extends Controller
             'openRound' => $open === null ? null : [
                 'id' => (int) $open->getKey(),
                 'round_number' => $open->round_number,
+                'name' => $open->name,
                 'result_choice_id' => (int) $open->result_choice_id,
                 'result_choice' => $open->resultChoice !== null
                     ? [
@@ -57,6 +62,7 @@ class WheelRoundController extends Controller
             ],
             'rounds' => $rounds,
             'choicesForRound' => $choices,
+            'nextRoundNumber' => $nextRoundNumber,
         ]);
     }
 
@@ -66,6 +72,7 @@ class WheelRoundController extends Controller
             $wheelRoom,
             (int) $request->validated('result_choice_id'),
             $request->user(),
+            $request->validated('name'),
         );
 
         return redirect()
