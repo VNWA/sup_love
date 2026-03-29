@@ -30,13 +30,13 @@ class AdminAccessTest extends TestCase
             ->assertRedirect(route('admin.login'));
     }
 
-    public function test_non_admin_admin_root_redirects_home(): void
+    public function test_non_admin_admin_root_redirects_to_admin_login(): void
     {
         $user = User::factory()->create();
 
         $this->actingAs($user)
             ->get(route('admin.index'))
-            ->assertRedirect(route('home'));
+            ->assertRedirect(route('admin.login'));
     }
 
     public function test_non_admin_cannot_access_admin_dashboard(): void

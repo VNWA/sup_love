@@ -26,7 +26,6 @@ class AccountPrizeWinsTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('account/PrizeWins')
-                ->has('wins.data')
-                ->where('status', 'all'));
+                ->has('spins.data'));
     }
 }

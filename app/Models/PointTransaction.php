@@ -55,10 +55,10 @@ class PointTransaction extends Model
     }
 
     /**
-     * @return HasOne<WheelPrizeWin, $this>
+     * @return HasOne<WheelSpin, $this>
      */
-    public function wheelPrizeWin(): HasOne
+    public function wheelSpin(): HasOne
     {
-        return $this->hasOne(WheelPrizeWin::class);
+        return $this->hasOne(WheelSpin::class);
     }
 }

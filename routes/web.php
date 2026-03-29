@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\Account\AccountHubController;
+use App\Http\Controllers\Account\BankInfoController;
 use App\Http\Controllers\Account\HistoryController;
+use App\Http\Controllers\Account\LixiWithdrawalController;
 use App\Http\Controllers\Account\PrizeWinsController;
 use App\Http\Controllers\Game\GamePageController;
 use App\Http\Controllers\Game\SpinWheelController;
@@ -23,6 +25,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
         Route::get('/', AccountHubController::class)->name('index');
         Route::get('history', HistoryController::class)->name('history');
         Route::get('prize-wins', PrizeWinsController::class)->name('prize-wins');
+        Route::get('bank', [BankInfoController::class, 'show'])->name('bank');
+        Route::put('bank', [BankInfoController::class, 'update'])->name('bank.update');
+        Route::get('lixi-withdrawals', [LixiWithdrawalController::class, 'index'])->name('lixi-withdrawals.index');
+        Route::post('lixi-withdrawals', [LixiWithdrawalController::class, 'store'])->name('lixi-withdrawals.store');
     });
 
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');

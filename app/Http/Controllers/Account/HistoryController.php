@@ -16,7 +16,7 @@ class HistoryController extends Controller
         abort_unless($user !== null, 401);
 
         $tab = $request->string('tab', 'all')->value();
-        if (! in_array($tab, ['all', 'spin', 'topup'], true)) {
+        if (! in_array($tab, ['all', 'spin'], true)) {
             $tab = 'all';
         }
 
@@ -26,8 +26,6 @@ class HistoryController extends Controller
 
         if ($tab === 'spin') {
             $query->where('type', PointTransactionType::WheelSpin);
-        } elseif ($tab === 'topup') {
-            $query->where('type', PointTransactionType::AdminCredit);
         }
 
         $transactions = $query->paginate(20)->withQueryString();

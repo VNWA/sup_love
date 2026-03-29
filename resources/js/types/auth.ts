@@ -3,8 +3,11 @@ export type User = {
     name: string;
     email: string;
     username?: string | null;
-    /** Điểm dùng cho vòng quay / tích lũy */
+    /** Điểm tài khoản */
     point?: number;
+    bank_name?: string | null;
+    bank_account_number?: string | null;
+    bank_account_holder?: string | null;
     is_admin?: boolean;
     avatar?: string;
     email_verified_at: string | null;

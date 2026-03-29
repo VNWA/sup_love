@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Account;
 
-use App\Enums\WheelPrizeWinStatus;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -15,24 +14,18 @@ class PrizeWinsController extends Controller
         $user = $request->user();
         abort_unless($user !== null, 401);
 
-        $status = $request->string('status', 'all')->value();
-        if (! in_array($status, ['all', 'pending', 'received'], true)) {
-            $status = 'all';
-        }
-
-        $query = $user->wheelPrizeWins()->latest();
-
-        if ($status === 'pending') {
-            $query->where('status', WheelPrizeWinStatus::Pending);
-        } elseif ($status === 'received') {
-            $query->where('status', WheelPrizeWinStatus::Received);
-        }
-
-        $wins = $query->paginate(20)->withQueryString();
+        $spins = $user->wheelSpins()
+            ->with([
+                'betChoice:id,name',
+                'resultChoice:id,name',
+                'wheelRoom:id,name,slug',
+            ])
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
 
         return Inertia::render('account/PrizeWins', [
-            'wins' => $wins,
-            'status' => $status,
+            'spins' => $spins,
         ]);
     }
 }

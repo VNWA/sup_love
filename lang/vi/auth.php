@@ -1,0 +1,9 @@
+<?php
+
+return [
+
+    'failed' => 'Thông tin đăng nhập không khớp với dữ liệu của chúng tôi.',
+    'password' => 'Mật khẩu không đúng.',
+    'throttle' => 'Đăng nhập quá nhiều lần. Vui lòng thử lại sau :seconds giây.',
+
+];

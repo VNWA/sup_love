@@ -2,6 +2,7 @@
 import { Head, Link } from '@inertiajs/vue3';
 import AccountMainTabs from '@/components/club/AccountMainTabs.vue';
 import ClubMobileShell from '@/components/club/ClubMobileShell.vue';
+import { vnFromNow } from '@/composables/useVnFromNow';
 import { history as accountHistory } from '@/routes/account';
 
 type Tx = {
@@ -42,6 +43,18 @@ function typeLabel(type: string): string {
         return 'Nạp điểm';
     }
 
+    if (type === 'admin_debit') {
+        return 'Trừ điểm';
+    }
+
+    if (type === 'lixi_withdrawal_request') {
+        return 'Rút lì xì (chờ)';
+    }
+
+    if (type === 'lixi_withdrawal_refund') {
+        return 'Hoàn lì xì';
+    }
+
     return type;
 }
 
@@ -64,7 +77,7 @@ const filterTabClass = (on: boolean): string =>
                 Lịch sử giao dịch
             </h2>
             <p class="text-center text-xs text-neutral-600">
-                Quay vòng trừ điểm; nạp điểm do admin ghi nhận kèm ghi chú.
+                Quay vòng, nạp/trừ điểm admin, rút lì xì — tất cả ghi nhận ở đây.
             </p>
 
             <div class="mt-4 flex flex-wrap justify-center gap-2 text-xs font-semibold">
@@ -80,14 +93,7 @@ const filterTabClass = (on: boolean): string =>
                     class="rounded-full px-3 py-1.5 transition"
                     :class="filterTabClass(tab === 'spin')"
                 >
-                    Lịch sử quay
-                </Link>
-                <Link
-                    :href="tabHref('topup')"
-                    class="rounded-full px-3 py-1.5 transition"
-                    :class="filterTabClass(tab === 'topup')"
-                >
-                    Lịch sử nạp điểm
+                    Chỉ lượt quay
                 </Link>
             </div>
 
@@ -111,22 +117,53 @@ const filterTabClass = (on: boolean): string =>
                         </span>
                     </div>
                     <p class="mt-1 text-xs text-neutral-500">
-                        {{ t.created_at }} · Số dư sau: {{ t.balance_after }}
+                        {{ vnFromNow(t.created_at) }} · Số dư sau:
+                        {{ t.balance_after }}
                     </p>
                     <p
-                        v-if="t.type === 'admin_credit' && t.admin_note"
+                        v-if="
+                            (t.type === 'admin_credit' ||
+                                t.type === 'admin_debit') &&
+                            t.admin_note
+                        "
                         class="mt-2 text-xs text-neutral-700"
                     >
                         <span class="font-semibold">Ghi chú:</span>
                         {{ t.admin_note }}
                     </p>
-                    <p
-                        v-if="t.type === 'wheel_spin' && t.meta?.prize_label"
-                        class="mt-2 text-xs text-neutral-700"
-                    >
-                        <span class="font-semibold">Trúng:</span>
-                        {{ String(t.meta.prize_label) }}
-                    </p>
+                    <template v-if="t.type === 'wheel_spin' && t.meta">
+                        <p class="mt-2 space-y-0.5 text-xs text-neutral-700">
+                            <span
+                                v-if="t.meta.wheel_room_name"
+                                class="block text-neutral-600"
+                            >
+                                <span class="font-semibold">Phòng:</span>
+                                {{ String(t.meta.wheel_room_name) }}
+                            </span>
+                            <span class="block">
+                                <span class="font-semibold">Mong muốn:</span>
+                                {{ String(t.meta.wish_category ?? '') }} ·
+                                <span class="font-semibold">Số tiền ghi nhận:</span>
+                                {{ String(t.meta.bet_amount ?? '') }}
+                            </span>
+                            <span class="block">
+                                <span class="font-semibold">Dừng tại:</span>
+                                {{ String(t.meta.result_choice_name ?? '') }}
+                            </span>
+                            <span
+                                v-if="t.meta.is_consolation"
+                                class="block text-neutral-600"
+                            >
+                                Ô an ủi — không đổi số dư điểm.
+                            </span>
+                            <span
+                                v-else
+                                class="block font-semibold text-green-700"
+                            >
+                                Trúng giải (ghi nhận) — không đổi số dư điểm.
+                            </span>
+                        </p>
+                    </template>
                 </li>
             </ul>
 

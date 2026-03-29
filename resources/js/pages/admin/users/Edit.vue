@@ -72,13 +72,14 @@ function removeUser(): void {
         <p class="text-sm text-neutral-600">
             Điểm hiện tại:
             <strong class="text-[#DA2778]">{{ editUser.point }}</strong>
-            — chỉnh sửa điểm tại trang
+            — chỉnh điểm tại
             <Link
                 :href="userPoints.url(editUser.id)"
                 class="font-medium text-[#DA2778] hover:underline"
             >
                 Nạp điểm
             </Link>
+            .
         </p>
 
         <section class="mt-6 max-w-md">

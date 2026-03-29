@@ -4,7 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import { store as creditPoints } from '@/routes/admin/users/points';
+import {
+    debit as debitPoints,
+    store as creditPoints,
+} from '@/routes/admin/users/points';
+import { vnFromNow } from '@/composables/useVnFromNow';
 import { edit as editUser, index as usersIndex } from '@/routes/admin/users';
 
 type Tx = {
@@ -37,13 +41,22 @@ const creditForm = useForm({
     note: 'Nạp điểm ',
 });
 
+const debitForm = useForm({
+    amount: 1,
+    note: 'Trừ điểm ',
+});
+
 function submitCredit(): void {
     creditForm.post(creditPoints.url(u.id));
+}
+
+function submitDebit(): void {
+    debitForm.post(debitPoints.url(u.id));
 }
 </script>
 
 <template>
-    <Head :title="`Nạp điểm @${creditUser.username}`" />
+    <Head :title="`Điểm @${creditUser.username}`" />
 
     <div>
         <div class="flex flex-wrap gap-3 text-sm">
@@ -58,12 +71,12 @@ function submitCredit(): void {
                 :href="editUser.url(creditUser.id)"
                 class="text-neutral-700 hover:text-[#DA2778] hover:underline"
             >
-                ← Sửa thông tin
+                Sửa tài khoản
             </Link>
         </div>
 
         <h1 class="mt-2 text-xl font-bold">
-            Nạp điểm — @{{ creditUser.username }}
+            Điểm — @{{ creditUser.username }}
         </h1>
         <p class="text-sm text-neutral-600">
             Số dư hiện tại:
@@ -120,6 +133,57 @@ function submitCredit(): void {
             </form>
         </section>
 
+        <section class="mt-8 max-w-md border-t border-neutral-200 pt-8">
+            <h2 class="font-semibold text-neutral-800">Giảm điểm</h2>
+            <p class="text-xs text-neutral-500">
+                Trừ điểm khi cần điều chỉnh; bắt buộc ghi chú lý do.
+            </p>
+            <form class="mt-3 space-y-3" @submit.prevent="submitDebit">
+                <div class="space-y-1">
+                    <Label for="debit-amount">Số điểm trừ</Label>
+                    <Input
+                        id="debit-amount"
+                        v-model.number="debitForm.amount"
+                        type="number"
+                        min="1"
+                        required
+                    />
+                    <p
+                        v-if="debitForm.errors.amount"
+                        class="text-xs text-red-600"
+                    >
+                        {{ debitForm.errors.amount }}
+                    </p>
+                </div>
+                <div class="space-y-1">
+                    <Label for="debit-note">Ghi chú *</Label>
+                    <textarea
+                        id="debit-note"
+                        v-model="debitForm.note"
+                        required
+                        rows="3"
+                        class="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm"
+                        placeholder="Ví dụ: Điều chỉnh sai sót nạp thừa"
+                    />
+                    <p
+                        v-if="debitForm.errors.note"
+                        class="text-xs text-red-600"
+                    >
+                        {{ debitForm.errors.note }}
+                    </p>
+                </div>
+                <Button
+                    type="submit"
+                    variant="outline"
+                    class="border-red-200 text-red-700 hover:bg-red-50"
+                    :disabled="debitForm.processing"
+                >
+                    <Spinner v-if="debitForm.processing" class="mr-2" />
+                    Trừ điểm
+                </Button>
+            </form>
+        </section>
+
         <section class="mt-10 border-t border-neutral-200 pt-8">
             <h2 class="font-semibold text-neutral-800">
                 Lịch sử giao dịch (50 mới nhất)
@@ -143,7 +207,7 @@ function submitCredit(): void {
                             class="border-t"
                         >
                             <td class="px-2 py-2 whitespace-nowrap">
-                                {{ t.created_at }}
+                                {{ vnFromNow(t.created_at) }}
                             </td>
                             <td class="px-2 py-2">{{ t.type }}</td>
                             <td
@@ -156,13 +220,45 @@ function submitCredit(): void {
                             </td>
                             <td class="px-2 py-2">{{ t.balance_after }}</td>
                             <td class="px-2 py-2 max-w-[200px] truncate">
-                                <span v-if="t.type === 'admin_credit'">{{
-                                    t.admin_note
-                                }}</span>
-                                <span v-else>{{
-                                    (t.meta as { prize_label?: string } | null)
-                                        ?.prize_label
-                                }}</span>
+                                <span
+                                    v-if="
+                                        t.type === 'admin_credit' ||
+                                        t.type === 'admin_debit'
+                                    "
+                                    >{{ t.admin_note }}</span
+                                >
+                                <span
+                                    v-else-if="
+                                        t.type === 'wheel_spin' &&
+                                        (t.meta as { result_choice_name?: string } | null)
+                                            ?.result_choice_name
+                                    "
+                                >
+                                    <span
+                                        v-if="
+                                            (t.meta as { wheel_room_name?: string })
+                                                ?.wheel_room_name
+                                        "
+                                        class="block truncate text-neutral-500"
+                                    >
+                                        Phòng:
+                                        {{
+                                            (t.meta as { wheel_room_name?: string })
+                                                ?.wheel_room_name
+                                        }}
+                                    </span>
+                                    Cược
+                                    {{
+                                        (t.meta as { bet_choice_name?: string })
+                                            ?.bet_choice_name
+                                    }}
+                                    · Dừng
+                                    {{
+                                        (t.meta as { result_choice_name?: string })
+                                            ?.result_choice_name
+                                    }}
+                                </span>
+                                <span v-else>—</span>
                             </td>
                             <td class="px-2 py-2">
                                 {{

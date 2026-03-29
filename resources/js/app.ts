@@ -1,3 +1,4 @@
+import '@/echo';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { initializeTheme } from '@/composables/useAppearance';
 import AdminLayout from '@/layouts/AdminLayout.vue';
@@ -6,7 +7,7 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
-
+localStorage.setItem('color-theme', 'light')
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     layout: (name) => {

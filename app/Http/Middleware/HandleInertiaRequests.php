@@ -39,6 +39,12 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            'locale' => app()->getLocale(),
+            'timezone' => config('app.timezone'),
+            'flash' => [
+                'error' => $request->session()->get('error'),
+                'success' => $request->session()->get('success'),
+            ],
             'cskhLink' => (string) config('app.cskh_link', ''),
             'auth' => [
                 'user' => $this->serializeUser($request->user()),

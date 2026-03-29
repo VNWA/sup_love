@@ -38,6 +38,20 @@ class RegistrationTest extends TestCase
 
         $user = User::query()->where('username', 'testuser')->first();
         $this->assertNotNull($user);
-        $this->assertSame(3, $user->point);
+        $this->assertSame(0, $user->point);
+    }
+
+    public function test_registration_accepts_password_shorter_than_eight_characters(): void
+    {
+        $response = $this->post(route('register.store'), [
+            'username' => 'shortpwuser',
+            'password' => 'ab',
+            'password_confirmation' => 'ab',
+        ]);
+
+        $this->assertAuthenticated();
+        $response->assertRedirect(route('dashboard', absolute: false));
+
+        $this->assertNotNull(User::query()->where('username', 'shortpwuser')->first());
     }
 }

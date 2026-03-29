@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { index as prizesIndex } from '@/routes/admin/wheel-prizes';
+import { index as wheelChoicesIndex } from '@/routes/admin/wheel-choices';
+import { index as wheelRoomsIndex } from '@/routes/admin/wheel-rooms';
 import { index as usersIndex } from '@/routes/admin/users';
 
 defineProps<{
@@ -60,10 +61,16 @@ defineProps<{
                 Quản lý người dùng
             </Link>
             <Link
-                :href="prizesIndex().url"
+                :href="wheelChoicesIndex().url"
                 class="inline-flex rounded-lg border border-[#DA2778] bg-white px-4 py-2 text-sm font-semibold text-[#DA2778] hover:bg-pink-50"
             >
-                Giải vòng quay
+                Ô vòng quay
+            </Link>
+            <Link
+                :href="wheelRoomsIndex().url"
+                class="inline-flex rounded-lg border border-[#DA2778] bg-white px-4 py-2 text-sm font-semibold text-[#DA2778] hover:bg-pink-50"
+            >
+                Phòng quay
             </Link>
         </div>
     </div>

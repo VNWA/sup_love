@@ -14,7 +14,16 @@ use Illuminate\Support\Str;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'password', 'username', 'point'])]
+#[Fillable([
+    'name',
+    'email',
+    'password',
+    'username',
+    'point',
+    'bank_name',
+    'bank_account_number',
+    'bank_account_holder',
+])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -58,10 +67,32 @@ class User extends Authenticatable
     }
 
     /**
-     * @return HasMany<WheelPrizeWin, $this>
+     * @return HasMany<WheelSpin, $this>
      */
-    public function wheelPrizeWins(): HasMany
+    public function wheelSpins(): HasMany
     {
-        return $this->hasMany(WheelPrizeWin::class);
+        return $this->hasMany(WheelSpin::class);
+    }
+
+    /**
+     * @return HasMany<LixiWithdrawal, $this>
+     */
+    public function lixiWithdrawals(): HasMany
+    {
+        return $this->hasMany(LixiWithdrawal::class);
+    }
+
+    /**
+     * Đủ thông tin ngân hàng để rút lì xì (tên NH, số TK, chủ TK).
+     */
+    public function hasCompleteBankProfile(): bool
+    {
+        foreach (['bank_name', 'bank_account_number', 'bank_account_holder'] as $field) {
+            if (trim((string) ($this->{$field} ?? '')) === '') {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

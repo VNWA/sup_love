@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\CreditPointsRequest;
+use App\Http\Requests\Admin\DebitPointsRequest;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
@@ -61,14 +62,14 @@ class UserController extends Controller
             'point' => 0,
         ]);
 
-        if ($initialPoints > 0) {
-            $this->pointCreditService->creditFromAdmin(
-                $request->user(),
-                $user,
-                $initialPoints,
-                'Điểm khởi tạo khi tạo tài khoản'
-            );
-        }
+        // if ($initialPoints > 0) {
+        //     $this->pointCreditService->creditFromAdmin(
+        //         $request->user(),
+        //         $user,
+        //         $initialPoints,
+        //         'Điểm khởi tạo khi tạo tài khoản'
+        //     );
+        // }
 
         return redirect()->route('admin.users.edit', $user)
             ->with('success', 'Đã tạo người dùng.');
@@ -120,6 +121,20 @@ class UserController extends Controller
         return redirect()
             ->route('admin.users.points', $user)
             ->with('success', 'Đã nạp điểm cho người dùng.');
+    }
+
+    public function debit(DebitPointsRequest $request, User $user): RedirectResponse
+    {
+        $this->pointCreditService->debitFromAdmin(
+            $request->user(),
+            $user,
+            (int) $request->validated('amount'),
+            $request->validated('note')
+        );
+
+        return redirect()
+            ->route('admin.users.points', $user)
+            ->with('success', 'Đã trừ điểm người dùng.');
     }
 
     public function destroy(Request $request, User $user): RedirectResponse

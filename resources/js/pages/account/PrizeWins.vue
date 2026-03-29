@@ -2,17 +2,33 @@
 import { Head, Link } from '@inertiajs/vue3';
 import AccountMainTabs from '@/components/club/AccountMainTabs.vue';
 import ClubMobileShell from '@/components/club/ClubMobileShell.vue';
+import { vnFromNow } from '@/composables/useVnFromNow';
 import { prizeWins as accountPrizeWins } from '@/routes/account';
 
-type WinRow = {
+/** Trùng với `WheelChoice::CONSOLATION_CHOICE_ID` (ô “Chúc bạn may mắn lần sau”). */
+const CONSOLATION_CHOICE_ID = 8;
+
+const WISH_LABEL: Record<string, string> = {
+    hon_nhan: 'Hôn nhân',
+    suc_khoe: 'Sức khỏe',
+    tinh_yeu: 'Tình yêu',
+    gia_dinh: 'Gia đình',
+    su_nghiep: 'Sự nghiệp',
+    ban_be: 'Bạn bè',
+    du_lich: 'Du lịch',
+    tai_chinh: 'Tài chính',
+};
+
+type SpinRow = {
     id: number;
-    prize_label: string;
-    prize_label_ngan: string;
-    color: string;
-    status: string;
-    received_at: string | null;
-    admin_note: string | null;
+    bet_amount: number;
+    payout: number;
+    was_rigged: boolean;
+    wish_category: string | null;
     created_at: string;
+    bet_choice: { id: number; name: string };
+    result_choice: { id: number; name: string };
+    wheel_room?: { id: number; name: string; slug: string } | null;
 };
 
 type Paginator<T> = {
@@ -20,39 +36,25 @@ type Paginator<T> = {
     links: { url: string | null; label: string; active: boolean }[];
 };
 
-const props = defineProps<{
-    wins: Paginator<WinRow>;
-    status: string;
+defineProps<{
+    spins: Paginator<SpinRow>;
 }>();
 
-function filterHref(s: string): string {
-    if (s === 'all') {
-        return accountPrizeWins.url();
+function wishLabel(key: string | null): string {
+    if (key === null || key === '') {
+        return '—';
     }
 
-    return accountPrizeWins.url({ query: { status: s } });
+    return WISH_LABEL[key] ?? key;
 }
 
-function statusLabel(s: string): string {
-    if (s === 'received') {
-        return 'Đã nhận';
-    }
-
-    if (s === 'pending') {
-        return 'Chưa nhận';
-    }
-
-    return s;
+function isConsolation(s: SpinRow): boolean {
+    return s.result_choice?.id === CONSOLATION_CHOICE_ID;
 }
-
-const filterTabClass = (on: boolean): string =>
-    on
-        ? 'bg-[#DA2778] text-white shadow-sm'
-        : 'bg-neutral-100 text-neutral-700 hover:bg-pink-50';
 </script>
 
 <template>
-    <Head title="Phần thưởng" />
+    <Head title="Lượt quay" />
 
     <ClubMobileShell nav-active="account">
         <AccountMainTabs active="prizes" />
@@ -61,105 +63,66 @@ const filterTabClass = (on: boolean): string =>
             <h2
                 class="mb-2 text-center text-sm font-bold uppercase tracking-wide text-neutral-900"
             >
-                Phần thưởng quay trúng
+                Lịch sử lượt quay
             </h2>
             <p class="text-center text-xs text-neutral-600">
-                Theo dõi giải đã trúng; trạng thái do CLB cập nhật khi đã giao
-                thưởng.
+                Số tiền mong muốn và kết quả vòng quay (không trừ điểm từ game).
             </p>
-
-            <div class="mt-4 flex flex-wrap justify-center gap-2 text-xs font-semibold">
-                <Link
-                    :href="filterHref('all')"
-                    class="rounded-full px-3 py-1.5 transition"
-                    :class="filterTabClass(status === 'all')"
-                >
-                    Tất cả
-                </Link>
-                <Link
-                    :href="filterHref('pending')"
-                    class="rounded-full px-3 py-1.5 transition"
-                    :class="filterTabClass(status === 'pending')"
-                >
-                    Chưa nhận
-                </Link>
-                <Link
-                    :href="filterHref('received')"
-                    class="rounded-full px-3 py-1.5 transition"
-                    :class="filterTabClass(status === 'received')"
-                >
-                    Đã nhận
-                </Link>
-            </div>
 
             <ul class="mt-6 space-y-3">
                 <li
-                    v-for="w in wins.data"
-                    :key="w.id"
+                    v-for="s in spins.data"
+                    :key="s.id"
                     class="rounded-2xl border border-pink-100 bg-white p-3 text-sm shadow-sm ring-1 ring-pink-50"
                 >
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="flex min-w-0 flex-1 items-start gap-2">
-                            <span
-                                class="mt-0.5 inline-block size-6 shrink-0 rounded border border-pink-100 shadow-inner"
-                                :style="{ backgroundColor: w.color }"
-                                :title="w.color"
-                            />
-                            <div class="min-w-0">
-                                <p class="font-semibold text-neutral-900">
-                                    {{ w.prize_label }}
-                                </p>
-                                <p class="text-xs text-neutral-500">
-                                    {{ w.created_at }}
-                                    <span v-if="w.received_at">
-                                        · Nhận: {{ w.received_at }}
-                                    </span>
-                                </p>
-                            </div>
-                        </div>
+                    <div class="flex justify-between gap-2">
+                        <span class="font-medium text-neutral-800">
+                            {{ vnFromNow(s.created_at) }}
+                        </span>
                         <span
-                            class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
-                            :class="
-                                w.status === 'received'
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : 'bg-amber-100 text-amber-900'
-                            "
+                            class="text-xs font-bold"
+                            :class="isConsolation(s) ? 'text-slate-500' : 'text-green-600'"
                         >
-                            {{ statusLabel(w.status) }}
+                            {{ isConsolation(s) ? 'Ô an ủi' : 'Giải thưởng' }}
                         </span>
                     </div>
                     <p
-                        v-if="w.admin_note"
-                        class="mt-2 border-t border-pink-50 pt-2 text-xs text-neutral-700"
+                        v-if="s.wheel_room?.name"
+                        class="mt-1 text-xs text-neutral-600"
                     >
-                        <span class="font-semibold text-neutral-800">Ghi chú CLB:</span>
-                        {{ w.admin_note }}
+                        <span class="font-semibold">Phòng:</span>
+                        {{ s.wheel_room.name }}
+                    </p>
+                    <p class="mt-2 text-xs text-neutral-700">
+                        <span class="font-semibold">Mong muốn:</span>
+                        {{ wishLabel(s.wish_category) }} —
+                        <span class="font-semibold text-[#DA2778]">{{
+                            s.bet_amount.toLocaleString('vi-VN')
+                        }}</span>
+                        (ghi nhận)
+                    </p>
+                    <p class="mt-1 text-xs text-neutral-700">
+                        <span class="font-semibold">Dừng tại:</span>
+                        {{ s.result_choice?.name }}
                     </p>
                 </li>
             </ul>
 
-            <p
-                v-if="wins.data.length === 0"
-                class="mt-8 text-center text-sm text-neutral-500"
-            >
-                Chưa có phần thưởng nào. Hãy quay vòng may mắn!
-            </p>
-
             <div
-                v-if="wins.links?.length > 3"
+                v-if="spins.links?.length > 3"
                 class="mt-6 flex flex-wrap justify-center gap-2"
             >
                 <Link
-                    v-for="(l, i) in wins.links"
+                    v-for="(l, i) in spins.links"
                     :key="i"
-                    :href="l.url || '#'"
+                    :href="l.url || accountPrizeWins().url"
                     class="rounded px-2 py-1 text-xs"
                     :class="
                         l.active
                             ? 'bg-[#DA2778] text-white'
                             : 'bg-neutral-100 text-neutral-700'
                     "
-                    :preserve-scroll="true"
+                    preserve-scroll
                 >
                     <span v-html="l.label" />
                 </Link>

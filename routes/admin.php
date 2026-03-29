@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\LixiWithdrawalController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\WheelPrizeController;
-use App\Http\Controllers\Admin\WheelPrizeWinController;
+use App\Http\Controllers\Admin\WheelChoiceController;
+use App\Http\Controllers\Admin\WheelRoomController;
+use App\Http\Controllers\Admin\WheelRoundController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -33,10 +35,19 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
 
         Route::get('users/{user}/points', [UserController::class, 'points'])->name('users.points');
         Route::post('users/{user}/points', [UserController::class, 'credit'])->name('users.points.store');
+        Route::post('users/{user}/points/debit', [UserController::class, 'debit'])->name('users.points.debit');
         Route::resource('users', UserController::class)->except(['show']);
 
-        Route::resource('wheel-prizes', WheelPrizeController::class)->except(['show']);
+        Route::resource('wheel-choices', WheelChoiceController::class)->except(['show']);
+        Route::get('wheel-rooms/{wheelRoom}/rounds', [WheelRoundController::class, 'index'])
+            ->name('wheel-rooms.rounds.index');
+        Route::post('wheel-rooms/{wheelRoom}/rounds', [WheelRoundController::class, 'store'])
+            ->name('wheel-rooms.rounds.store');
+        Route::post('wheel-rooms/{wheelRoom}/rounds/{wheelRound}/end', [WheelRoundController::class, 'end'])
+            ->name('wheel-rooms.rounds.end');
+        Route::resource('wheel-rooms', WheelRoomController::class)->only(['index', 'edit', 'update']);
 
-        Route::resource('wheel-prize-wins', WheelPrizeWinController::class)->only(['index', 'edit', 'update']);
+        Route::get('lixi-withdrawals', [LixiWithdrawalController::class, 'index'])->name('lixi-withdrawals.index');
+        Route::patch('lixi-withdrawals/{lixiWithdrawal}', [LixiWithdrawalController::class, 'update'])->name('lixi-withdrawals.update');
     });
 });

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
 import { dashboard, logout as adminLogout } from '@/routes/admin';
-import { index as prizesIndex } from '@/routes/admin/wheel-prizes';
-import { index as prizeWinsIndex } from '@/routes/admin/wheel-prize-wins';
+import { index as wheelChoicesIndex } from '@/routes/admin/wheel-choices';
+import { index as wheelRoomsIndex } from '@/routes/admin/wheel-rooms';
+import lixiWithdrawalsAdmin from '@/routes/admin/lixi-withdrawals';
 import { index as usersIndex } from '@/routes/admin/users';
 
 function signOutAdmin(): void {
@@ -30,16 +31,22 @@ function signOutAdmin(): void {
                     Người dùng
                 </Link>
                 <Link
-                    :href="prizesIndex().url"
+                    :href="wheelChoicesIndex().url"
                     class="text-neutral-700 hover:text-[#DA2778]"
                 >
-                    Giải vòng quay
+                    Ô vòng quay
                 </Link>
                 <Link
-                    :href="prizeWinsIndex().url"
+                    :href="wheelRoomsIndex().url"
                     class="text-neutral-700 hover:text-[#DA2778]"
                 >
-                    Phần thưởng trúng
+                    Phòng quay
+                </Link>
+                <Link
+                    :href="lixiWithdrawalsAdmin.index.url()"
+                    class="text-neutral-700 hover:text-[#DA2778]"
+                >
+                    Rút lì xì
                 </Link>
             </nav>
             <div class="ml-auto">

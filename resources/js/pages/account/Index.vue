@@ -3,11 +3,20 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AccountMainTabs from '@/components/club/AccountMainTabs.vue';
 import ClubMobileShell from '@/components/club/ClubMobileShell.vue';
-import { history as accountHistory, prizeWins as accountPrizeWins } from '@/routes/account';
+import {
+    bank as accountBank,
+    history as accountHistory,
+    prizeWins as accountPrizeWins,
+} from '@/routes/account';
+import lixiWithdrawalRoutes from '@/routes/account/lixi-withdrawals';
 import type { User } from '@/types';
 
 const page = usePage();
 const user = computed(() => page.props.auth.user as User | null);
+
+const flashSuccess = computed(
+    () => (page.props.flash as { success?: string | null } | undefined)?.success,
+);
 </script>
 
 <template>
@@ -17,6 +26,14 @@ const user = computed(() => page.props.auth.user as User | null);
         <AccountMainTabs active="overview" />
 
         <div class="space-y-4">
+            <div
+                v-if="flashSuccess"
+                class="rounded-xl bg-emerald-50 px-3 py-2 text-center text-xs font-medium text-emerald-900 ring-1 ring-emerald-200"
+                role="status"
+            >
+                {{ flashSuccess }}
+            </div>
+
             <div
                 class="rounded-2xl border border-pink-100 bg-[#fff5f9] p-4 text-center shadow-sm ring-1 ring-pink-100/80"
             >
@@ -32,30 +49,35 @@ const user = computed(() => page.props.auth.user as User | null);
                 </p>
             </div>
 
+            <p class="text-center text-xs leading-relaxed text-neutral-600">
+                Dùng các mục phía trên: Lịch sử (mọi giao dịch điểm), Lượt quay,
+                thông tin ngân hàng nhận lì xì và rút lì xì.
+            </p>
+
             <div class="space-y-2 text-sm">
                 <Link
                     :href="accountPrizeWins().url"
                     class="block rounded-2xl border border-pink-100 bg-white px-4 py-3 font-medium text-[#DA2778] shadow-sm ring-1 ring-pink-100/60 transition hover:bg-pink-50"
                 >
-                    Phần thưởng quay trúng
+                    Lịch sử lượt quay
                 </Link>
                 <Link
                     :href="accountHistory().url"
                     class="block rounded-2xl border border-pink-100 bg-white px-4 py-3 font-medium text-[#DA2778] shadow-sm ring-1 ring-pink-100/60 transition hover:bg-pink-50"
                 >
-                    Lịch sử quay &amp; nạp điểm
+                    Lịch sử quay &amp; điểm
                 </Link>
                 <Link
-                    :href="accountHistory.url({ query: { tab: 'spin' } })"
-                    class="block rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-neutral-700 shadow-sm transition hover:bg-neutral-50"
+                    :href="accountBank().url"
+                    class="block rounded-2xl border border-pink-100 bg-white px-4 py-3 font-medium text-[#DA2778] shadow-sm ring-1 ring-pink-100/60 transition hover:bg-pink-50"
                 >
-                    Chỉ lịch sử quay
+                    Thông tin ngân hàng nhận lì xì
                 </Link>
                 <Link
-                    :href="accountHistory.url({ query: { tab: 'topup' } })"
-                    class="block rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-neutral-700 shadow-sm transition hover:bg-neutral-50"
+                    :href="lixiWithdrawalRoutes.index.url()"
+                    class="block rounded-2xl border border-pink-100 bg-white px-4 py-3 font-medium text-[#DA2778] shadow-sm ring-1 ring-pink-100/60 transition hover:bg-pink-50"
                 >
-                    Chỉ lịch sử nạp điểm
+                    Rút lì xì
                 </Link>
             </div>
         </div>
