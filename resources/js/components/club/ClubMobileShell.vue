@@ -37,7 +37,7 @@ const cskhAttrs = useCskhAnchorAttrs();
 
 <template>
     <div
-        class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-hidden bg-white text-neutral-900"
+        class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-hidden bg-[#DA2778] text-neutral-900"
     >
         <header class="shrink-0 bg-[#fff5f9] px-4 pb-3 pt-4 text-center">
             <p class="text-xs font-medium text-neutral-800">{{ page.props.name }}</p>
@@ -53,7 +53,7 @@ const cskhAttrs = useCskhAnchorAttrs();
         </div>
 
         <main
-            class="min-h-0 w-full min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-white px-3 pb-36 pt-4"
+            class="min-h-0 w-full min-w-0 flex-1 overflow-y-auto overflow-x-hidden bg-[#DA2778] px-3 pb-36 pt-4"
         >
             <slot />
         </main>

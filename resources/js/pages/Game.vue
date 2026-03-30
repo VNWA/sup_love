@@ -467,7 +467,7 @@ function spinErrorMessage(): string {
     <Head title="Vòng quay may mắn" />
 
     <ClubMobileShell :points-display="localPoints">
-        <div class="mx-auto w-full min-w-0 max-w-sm">
+        <div class="mx-auto w-full min-w-0 max-w-sm bg-[#DA2778]">
             <!-- <div class="mb-2 flex items-center justify-between gap-2">
                 <h2
                     class="text-sm font-bold uppercase tracking-wide text-neutral-900"
@@ -525,7 +525,7 @@ function spinErrorMessage(): string {
                 đang diễn ra — mỗi người chỉ quay một lần trong vòng.
             </div>
 
-            <p class="mb-3 px-2 text-center text-xs leading-relaxed text-neutral-600">
+            <p class="mb-3 px-2 text-center text-xs leading-relaxed text-white">
                 Nhập
                 <strong class="text-neutral-800">số điểm</strong>
                 và chọn
@@ -565,7 +565,6 @@ function spinErrorMessage(): string {
             <p v-if="spinHttp.hasErrors" class="mb-2 text-center text-xs font-medium text-red-600">
                 {{ spinErrorMessage() }}
             </p>
-<div class="bg-[#DA2778] py-4">
 
             <div
                 ref="wheelFrameRef"
@@ -595,7 +594,7 @@ function spinErrorMessage(): string {
                     {{ spinning ? 'Đang quay…' : 'Quay' }}
                 </button>
             </div>
-</div>
+
 
             <Teleport to="body">
                 <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0"
