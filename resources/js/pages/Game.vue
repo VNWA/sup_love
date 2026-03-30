@@ -59,7 +59,9 @@ const giaiThuong = computed<GiaiThuong[]>(() =>
     (props.wheelChoices ?? []).map((p) => ({
         id: p.id,
         label: p.name,
-        labelNgan: p.name.length > 14 ? `${p.name.slice(0, 12)}…` : p.name,
+        // Rút gọn chỉ khi tên quá dài; tăng ngưỡng để hiển thị đầy đủ hơn.
+        labelNgan:
+            p.name.length > 22 ? `${p.name.slice(0, 20)}…` : p.name,
         color: p.color,
     })),
 );
@@ -79,11 +81,11 @@ watch(
 function chuHienThiTrenVong(g: GiaiThuong): string {
     const n = giaiThuong.value.length;
 
-    if (n <= 8 && g.label.length <= 22) {
+    if (n <= 8 && g.label.length <= 30) {
         return g.label;
     }
 
-    if (n <= 12 && g.label.length <= 16) {
+    if (n <= 12 && g.label.length <= 24) {
         return g.label;
     }
 
@@ -158,9 +160,9 @@ function paintWheel(): void {
         width: w,
         height: h,
         segments: wheelCanvasSegments.value,
-        /** Đẩy chữ ra gần viền để nút giữa ít che hơn. */
-        labelRadiusRatio: 0.46,
-        outerRadiusRatio: 0.94,
+        /** Đẩy chữ ra xa tâm hơn để dễ đọc hơn. */
+        labelRadiusRatio: 0.6,
+        outerRadiusRatio: 1,
     });
 }
 
@@ -563,6 +565,7 @@ function spinErrorMessage(): string {
             <p v-if="spinHttp.hasErrors" class="mb-2 text-center text-xs font-medium text-red-600">
                 {{ spinErrorMessage() }}
             </p>
+<div class="bg-[#DA2778] py-4">
 
             <div
                 ref="wheelFrameRef"
@@ -592,6 +595,7 @@ function spinErrorMessage(): string {
                     {{ spinning ? 'Đang quay…' : 'Quay' }}
                 </button>
             </div>
+</div>
 
             <Teleport to="body">
                 <Transition enter-active-class="transition duration-200 ease-out" enter-from-class="opacity-0"

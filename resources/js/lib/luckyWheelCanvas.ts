@@ -40,9 +40,9 @@ function luminanceIsLight(hex: string): boolean {
     const full =
         h.length === 3
             ? h
-                  .split('')
-                  .map((c) => c + c)
-                  .join('')
+                .split('')
+                .map((c) => c + c)
+                .join('')
             : h;
 
     const n = Number.parseInt(full, 16);
@@ -102,9 +102,9 @@ export function drawLuckyWheel(
     const fontSize = Math.max(
         7,
         Math.min(
-            12,
+            11,
             Math.floor(
-                (r * 0.14) / Math.max(1, Math.sqrt(n / 8)),
+                (r * 0.14) / Math.max(1, Math.sqrt(n / 7)),
             ),
         ),
     );
@@ -166,12 +166,21 @@ export function drawLuckyWheel(
         ctx.save();
         ctx.translate(lx, ly);
         ctx.rotate((rotDeg * Math.PI) / 180);
-        ctx.font = `800 ${fontSize}px system-ui, -apple-system, sans-serif`;
+        ctx.font = `600 ${fontSize}px system-ui, -apple-system, sans-serif`;
         ctx.fillStyle = fill;
-        ctx.shadowColor = 'rgba(0,0,0,0.55)';
-        ctx.shadowBlur = 2;
+        ctx.shadowColor = 'rgba(0,0,0,0.6)';
+        ctx.shadowBlur = 10;
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 1;
+
+        // Viền giúp chữ rõ hơn trên nền màu sắc khác nhau của từng ô.
+        const isWhiteText = fill.toLowerCase() === '#ffffff';
+        ctx.lineWidth = Math.max(1, Math.floor(fontSize * 0.08));
+        ctx.strokeStyle = isWhiteText
+            ? 'rgba(0,0,0,0.45)'
+            : 'rgba(255,255,255,0.75)';
+
+        ctx.strokeText(seg.label, 0, 0);
         ctx.fillText(seg.label, 0, 0);
         ctx.restore();
     }
