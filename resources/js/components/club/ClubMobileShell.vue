@@ -37,7 +37,7 @@ const cskhAttrs = useCskhAnchorAttrs();
 
 <template>
     <div
-        class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-hidden bg-[#DA2778] text-neutral-900"
+        class="relative mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-x-hidden bg-[#DA2778] text-white"
     >
         <header class="shrink-0 bg-[#fff5f9] px-4 pb-3 pt-4 text-center">
             <p class="text-xs font-medium text-neutral-800">{{ page.props.name }}</p>
@@ -47,7 +47,7 @@ const cskhAttrs = useCskhAnchorAttrs();
         </header>
 
         <div
-            class="flex shrink-0 items-center justify-between gap-2 bg-[#F677BC] px-3 py-2.5 text-xs font-semibold text-neutral-900 sm:text-sm">
+            class="flex shrink-0 items-center justify-between gap-2 bg-[#F677BC] px-3 py-2.5 text-xs font-semibold text-white sm:text-sm">
             <span>ID: {{ memberId + 5800 }}</span>
             <span class="text-right">Số điểm tài khoản: {{ accountPoints }}</span>
         </div>

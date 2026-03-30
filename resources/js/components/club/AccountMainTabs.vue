@@ -11,11 +11,11 @@ import { logout as memberLogout } from '@/routes';
 
 defineProps<{
     active:
-        | 'overview'
-        | 'history'
-        | 'prizes'
-        | 'bank'
-        | 'lixi';
+    | 'overview'
+    | 'history'
+    | 'prizes'
+    | 'bank'
+    | 'lixi';
 }>();
 
 function signOut(): void {
@@ -30,55 +30,38 @@ const tabClass = (on: boolean): string =>
 
 <template>
     <div class="mb-4">
-        <h2
-            class="mb-3 text-center text-sm font-bold uppercase tracking-wide text-neutral-900"
-        >
+        <h2 class="mb-3 text-center text-sm font-bold uppercase tracking-wide text-white ">
             Tài khoản thành viên
         </h2>
-        <nav
-            class="flex max-w-full flex-wrap items-center justify-center gap-1.5 sm:gap-2"
-            aria-label="Mục tài khoản"
-        >
-            <Link
-                :href="accountIndex().url"
+        <nav class="flex max-w-full flex-wrap items-center justify-center gap-1.5 sm:gap-2" aria-label="Mục tài khoản">
+            <Link :href="accountIndex().url"
                 class="rounded-full px-2.5 py-1.5 text-[11px] font-semibold transition sm:text-xs"
-                :class="tabClass(active === 'overview')"
-            >
+                :class="tabClass(active === 'overview')">
                 Tổng quan
             </Link>
-            <Link
-                :href="accountHistory().url"
+            <Link :href="accountHistory().url"
                 class="rounded-full px-2.5 py-1.5 text-[11px] font-semibold transition sm:text-xs"
-                :class="tabClass(active === 'history')"
-            >
+                :class="tabClass(active === 'history')">
                 Lịch sử
             </Link>
-            <Link
-                :href="accountPrizeWins().url"
+            <Link :href="accountPrizeWins().url"
                 class="rounded-full px-2.5 py-1.5 text-[11px] font-semibold transition sm:text-xs"
-                :class="tabClass(active === 'prizes')"
-            >
+                :class="tabClass(active === 'prizes')">
                 Lượt quay
             </Link>
-            <Link
-                :href="accountBank().url"
+            <Link :href="accountBank().url"
                 class="rounded-full px-2.5 py-1.5 text-[11px] font-semibold transition sm:text-xs"
-                :class="tabClass(active === 'bank')"
-            >
+                :class="tabClass(active === 'bank')">
                 NH nhận lì xì
             </Link>
-            <Link
-                :href="lixiWithdrawalRoutes.index.url()"
+            <Link :href="lixiWithdrawalRoutes.index.url()"
                 class="rounded-full px-2.5 py-1.5 text-[11px] font-semibold transition sm:text-xs"
-                :class="tabClass(active === 'lixi')"
-            >
+                :class="tabClass(active === 'lixi')">
                 Rút lì xì
             </Link>
-            <button
-                type="button"
-                class="rounded-full px-2.5 py-1.5 text-[11px] font-semibold text-red-600 ring-1 ring-red-100 transition hover:bg-red-50 sm:text-xs"
-                @click="signOut"
-            >
+            <button type="button"
+                class="rounded-full px-2.5 py-1.5 text-[11px] font-semibold text-red-600 ring-1 bg-white ring-red-100 transition hover:bg-red-50 sm:text-xs"
+                @click="signOut">
                 Đăng xuất
             </button>
         </nav>

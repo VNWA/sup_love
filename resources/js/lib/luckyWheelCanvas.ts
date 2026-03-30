@@ -100,11 +100,11 @@ export function drawLuckyWheel(
     const startOffsetRad = -Math.PI / 2;
 
     const fontSize = Math.max(
-        7,
+        8,
         Math.min(
-            11,
+            13,
             Math.floor(
-                (r * 0.14) / Math.max(1, Math.sqrt(n / 7)),
+                (r * 0.165) / Math.max(1, Math.sqrt(n / 7)),
             ),
         ),
     );
@@ -141,7 +141,7 @@ export function drawLuckyWheel(
             ctx.arc(bx, by, bulbR, 0, Math.PI * 2);
             ctx.fillStyle = '#ffeb3b';
             ctx.shadowColor = 'rgba(255, 235, 59, 0.95)';
-            ctx.shadowBlur = 6;
+            ctx.shadowBlur = 0;
             ctx.fill();
             ctx.restore();
         }
@@ -166,19 +166,21 @@ export function drawLuckyWheel(
         ctx.save();
         ctx.translate(lx, ly);
         ctx.rotate((rotDeg * Math.PI) / 180);
-        ctx.font = `600 ${fontSize}px system-ui, -apple-system, sans-serif`;
+        ctx.font = `800 ${fontSize}px system-ui, -apple-system, sans-serif`;
         ctx.fillStyle = fill;
-        ctx.shadowColor = 'rgba(0,0,0,0.6)';
-        ctx.shadowBlur = 10;
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
         ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 1;
+        ctx.shadowOffsetY = 0;
 
         // Viền giúp chữ rõ hơn trên nền màu sắc khác nhau của từng ô.
         const isWhiteText = fill.toLowerCase() === '#ffffff';
-        ctx.lineWidth = Math.max(1, Math.floor(fontSize * 0.08));
+        ctx.lineWidth = Math.max(1, fontSize * 0.2);
         ctx.strokeStyle = isWhiteText
             ? 'rgba(0,0,0,0.45)'
-            : 'rgba(255,255,255,0.75)';
+            : 'rgba(255,255,255,0.72)';
+        ctx.lineJoin = 'round';
+        ctx.miterLimit = 2;
 
         ctx.strokeText(seg.label, 0, 0);
         ctx.fillText(seg.label, 0, 0);

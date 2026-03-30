@@ -470,7 +470,7 @@ function spinErrorMessage(): string {
         <div class="mx-auto w-full min-w-0 max-w-sm bg-[#DA2778]">
             <!-- <div class="mb-2 flex items-center justify-between gap-2">
                 <h2
-                    class="text-sm font-bold uppercase tracking-wide text-neutral-900"
+                    class="text-sm font-bold uppercase tracking-wide text-white"
                 >
                     Vòng quay may mắn
                 </h2>
@@ -527,11 +527,11 @@ function spinErrorMessage(): string {
 
             <p class="mb-3 px-2 text-center text-xs leading-relaxed text-white">
                 Nhập
-                <strong class="text-neutral-800">số điểm</strong>
+                <strong class="text-white">số điểm</strong>
                 và chọn
-                <strong class="text-neutral-800">lĩnh vực mong muốn</strong>
+                <strong class="text-white">lĩnh vực mong muốn</strong>
                 , rồi bấm
-                <strong class="text-neutral-800">Quay</strong>
+                <strong class="text-white">Quay</strong>
                 . Vòng quay dừng theo kết quả ban tổ chức đã cài đặt; không trừ
                 điểm ví từ đây.
             </p>
@@ -566,10 +566,8 @@ function spinErrorMessage(): string {
                 {{ spinErrorMessage() }}
             </p>
 
-            <div
-                ref="wheelFrameRef"
-                class="game-wheel-frame relative mx-auto aspect-square w-full max-w-[min(100%,22rem)] shrink-0 overflow-hidden rounded-full"
-            >
+            <div ref="wheelFrameRef"
+                class="game-wheel-frame relative mx-auto aspect-square w-full max-w-[min(100%,22rem)] shrink-0 overflow-hidden rounded-full">
                 <div class="absolute inset-0 box-border overflow-hidden rounded-full border-[7px] border-[#ff5722] shadow-[0_4px_14px_rgba(0,0,0,0.12)]"
                     :style="{
                         transformOrigin: '50% 50%',

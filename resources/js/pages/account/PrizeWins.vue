@@ -54,42 +54,32 @@ function isConsolation(s: SpinRow): boolean {
 </script>
 
 <template>
+
     <Head title="Lượt quay" />
 
     <ClubMobileShell nav-active="account">
         <AccountMainTabs active="prizes" />
 
         <div>
-            <h2
-                class="mb-2 text-center text-sm font-bold uppercase tracking-wide text-neutral-900"
-            >
+            <h2 class="mb-2 text-center text-sm font-bold uppercase tracking-wide text-white">
                 Lịch sử lượt quay
             </h2>
-            <p class="text-center text-xs text-neutral-600">
+            <p class="text-center text-xs text-white">
                 Số tiền mong muốn và kết quả vòng quay (không trừ điểm từ game).
             </p>
 
             <ul class="mt-6 space-y-3">
-                <li
-                    v-for="s in spins.data"
-                    :key="s.id"
-                    class="rounded-2xl border border-pink-100 bg-white p-3 text-sm shadow-sm ring-1 ring-pink-50"
-                >
+                <li v-for="s in spins.data" :key="s.id"
+                    class="rounded-2xl border border-pink-100 bg-white p-3 text-sm shadow-sm ring-1 ring-pink-50">
                     <div class="flex justify-between gap-2">
                         <span class="font-medium text-neutral-800">
                             {{ vnFromNow(s.created_at) }}
                         </span>
-                        <span
-                            class="text-xs font-bold"
-                            :class="isConsolation(s) ? 'text-slate-500' : 'text-green-600'"
-                        >
+                        <span class="text-xs font-bold" :class="isConsolation(s) ? 'text-slate-500' : 'text-green-600'">
                             {{ isConsolation(s) ? 'Ô an ủi' : 'Giải thưởng' }}
                         </span>
                     </div>
-                    <p
-                        v-if="s.wheel_room?.name"
-                        class="mt-1 text-xs text-neutral-600"
-                    >
+                    <p v-if="s.wheel_room?.name" class="mt-1 text-xs text-neutral-600">
                         <span class="font-semibold">Phòng:</span>
                         {{ s.wheel_room.name }}
                     </p>
@@ -108,22 +98,12 @@ function isConsolation(s: SpinRow): boolean {
                 </li>
             </ul>
 
-            <div
-                v-if="spins.links?.length > 3"
-                class="mt-6 flex flex-wrap justify-center gap-2"
-            >
-                <Link
-                    v-for="(l, i) in spins.links"
-                    :key="i"
-                    :href="l.url || accountPrizeWins().url"
-                    class="rounded px-2 py-1 text-xs"
-                    :class="
-                        l.active
-                            ? 'bg-[#DA2778] text-white'
-                            : 'bg-neutral-100 text-neutral-700'
-                    "
-                    preserve-scroll
-                >
+            <div v-if="spins.links?.length > 3" class="mt-6 flex flex-wrap justify-center gap-2">
+                <Link v-for="(l, i) in spins.links" :key="i" :href="l.url || accountPrizeWins().url"
+                    class="rounded px-2 py-1 text-xs" :class="l.active
+                        ? 'bg-[#DA2778] text-white'
+                        : 'bg-neutral-100 text-neutral-700'
+                        " preserve-scroll>
                     <span v-html="l.label" />
                 </Link>
             </div>
